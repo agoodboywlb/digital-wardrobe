@@ -11,7 +11,7 @@ trigger: always_on
 
 ```text
 jj-project/
-├── digital-wardrobe/       # 前端 → 规范见 GEMINI.md
+├── wardrobe-front/         # 前端 → 规范见 GEMINI.md
 ├── wardrobe-backend/
 │   ├── ai-service/         # AI 服务 → 规范见 GEMINI.md
 │   └── java-service/       # Java 后端 (预留)
@@ -20,7 +20,7 @@ jj-project/
 
 | 子项目 | 语言 | 框架 | 质量工具 |
 | :--- | :--- | :--- | :--- |
-| `digital-wardrobe` | TypeScript 5.8 | React 19 + Vite 6 | ESLint, Vitest |
+| `wardrobe-front` | TypeScript 5.8 | React 19 + Vite 6 | ESLint, Vitest |
 | `ai-service` | Python 3.10+ | FastAPI | Ruff, MyPy, Pytest |
 | `java-service` | Java 17/21 | Spring Boot | — |
 
