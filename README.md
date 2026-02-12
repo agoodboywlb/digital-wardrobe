@@ -57,6 +57,7 @@
 ### 前置要求
 
 - **Node.js** >= 18.0.0
+- **Python** >= 3.14 (用于 AI 服务)
 - **npm** >= 9.0.0 或 **pnpm** >= 8.0.0
 
 ### 安装步骤
@@ -70,10 +71,19 @@ cd digital-wardrobe/wardrobe-front
 
 2. **安装依赖**
 
+#### 前端 (wardrobe-front)
 ```bash
+cd wardrobe-front
 npm install
-# 或
-pnpm install
+```
+
+#### 后端 (ai-service)
+```bash
+cd ../wardrobe-backend/ai-service
+python -m venv venv
+source venv/bin/activate  # macOS/Linux
+# .\venv\Scripts\activate # Windows
+pip install -e .
 ```
 
 3. **配置环境变量**
@@ -99,11 +109,20 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 5. **启动开发服务器**
 
+#### 启动前端
 ```bash
+cd wardrobe-front
 npm run dev
 ```
 
-访问 http://localhost:3000
+#### 启动 AI 后端
+```bash
+cd wardrobe-backend/ai-service
+./venv/bin/python  main.py
+```
+
+前端访问: http://localhost:3000
+后端 API: http://localhost:8000
 
 ## 📁 项目结构
 
@@ -148,6 +167,22 @@ npm run validate         # 运行所有检查 (类型+lint+格式)
 npm run test             # 运行测试
 npm run test:ui          # 运行测试 UI
 npm run test:coverage    # 生成测试覆盖率报告
+```
+
+### 🐍 后端脚本 (ai-service)
+
+```bash
+cd wardrobe-backend/ai-service
+
+# 激活并启动服务
+source venv/bin/activate
+python main.py           # 启动 FastAPI 服务 (默认 8000 端口)
+
+# 代码质量与测试
+pytest                  # 运行单元测试
+ruff check .            # 代码质量检查
+ruff format .           # 代码格式化
+mypy .                  # 类型检查
 ```
 
 ## 🎯 开发规范

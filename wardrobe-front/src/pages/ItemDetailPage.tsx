@@ -4,6 +4,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 
 // import { MOCK_ITEMS } from '@/utils/constants'; // REMOVED
 import ImageGallery from '@/components/common/ImageGallery';
+import ImagePreview from '@/components/common/ImagePreview';
 import { wardrobeService } from '@/features/wardrobe/services/wardrobeService';
 import { ItemStatus } from '@/types/index';
 import { getCategoryLabel } from '@/utils/formatters';
@@ -21,6 +22,7 @@ const ItemDetailPage: React.FC = () => {
   // Local state for interactions
   const [currentStatus, setCurrentStatus] = useState<ItemStatus>(ItemStatus.InWardrobe);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   useEffect(() => {
     const loadItem = async () => {
@@ -162,7 +164,10 @@ const ItemDetailPage: React.FC = () => {
       <main className="flex-1 max-w-md mx-auto w-full pb-44">
         {/* Image Gallery */}
         <div className="p-4 pt-2">
-          <div className="relative w-full aspect-square overflow-hidden rounded-3xl bg-white dark:bg-white/5 shadow-premium">
+          <div 
+            className="relative w-full aspect-square overflow-hidden rounded-3xl bg-white dark:bg-white/5 shadow-premium cursor-zoom-in"
+            onClick={() => setPreviewImage(item.imageUrl)}
+          >
             <ImageGallery
               images={item.images}
               mainImageUrl={item.imageUrl}
@@ -170,6 +175,15 @@ const ItemDetailPage: React.FC = () => {
             />
           </div>
         </div>
+
+        {/* Fullscreen Image Preview */}
+        {previewImage && (
+          <ImagePreview 
+            imageUrl={previewImage} 
+            alt={item.name} 
+            onClose={() => setPreviewImage(null)} 
+          />
+        )}
 
         {/* Title */}
         <div className="px-5 mb-8">

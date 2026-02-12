@@ -1,8 +1,9 @@
-import { ChevronLeft, Plus, Loader2, Ellipsis } from 'lucide-react';
+import { ChevronLeft, Plus, Loader2, Ellipsis, Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 import OutfitPreview from '@/features/outfit/components/OutfitPreview';
+import ImagePreview from '@/components/common/ImagePreview';
 import { outfitService } from '@/features/outfit/services/outfitService';
 import { parseISODate, formatDateDisplay } from '@/utils/dateUtils';
 
@@ -18,6 +19,7 @@ export default function DayOutfitsPage() {
   const navigate = useNavigate();
   const [outfits, setOutfits] = useState<Outfit[]>([]);
   const [loading, setLoading] = useState(true);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   useEffect(() => {
     const loadOutfits = async () => {
@@ -46,6 +48,18 @@ export default function DayOutfitsPage() {
 
   const handleBack = () => {
     void navigate('/plan');
+  };
+
+  const handleDeleteOutfit = async (outfitId: string) => {
+    if (window.confirm('确定要删除这个搭配吗？此操作不可撤销。')) {
+      try {
+        await outfitService.deleteOutfit(outfitId);
+        setOutfits(outfits.filter(o => o.id !== outfitId));
+      } catch (error) {
+        console.error('Failed to delete outfit', error);
+        alert('删除失败，请稍后重试');
+      }
+    }
   };
 
   // 格式化日期显示
@@ -110,7 +124,15 @@ export default function DayOutfitsPage() {
                   className="relative bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 cursor-pointer hover:shadow-md transition-shadow"
                 >
                   {/* 搭配预览 */}
-                  <div className="mb-3">
+                  <div 
+                    className="mb-3 cursor-zoom-in"
+                    onClick={(e) => {
+                      if (outfit.items[0]?.imageUrl) {
+                        e.stopPropagation();
+                        setPreviewImage(outfit.items[0].imageUrl);
+                      }
+                    }}
+                  >
                     <OutfitPreview outfit={outfit} />
                   </div>
 
@@ -125,22 +147,44 @@ export default function DayOutfitsPage() {
                   </div>
 
                   {/* 更多操作按钮 */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOutfitClick(outfit.id);
-                    }}
-                    className="absolute top-4 right-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                  >
-                    <Ellipsis className="w-5 h-5 text-gray-400" />
-                  </button>
+                  <div className="absolute top-4 right-4 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void handleDeleteOutfit(outfit.id);
+                      }}
+                      className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                      title="删除搭配"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOutfitClick(outfit.id);
+                      }}
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                    >
+                      <Ellipsis className="w-5 h-5 text-gray-400" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           </>
         )}
       </div>
+
+      {/* Fullscreen Image Preview */}
+      {previewImage && (
+        <ImagePreview 
+          imageUrl={previewImage} 
+          alt="搭配预览" 
+          onClose={() => setPreviewImage(null)} 
+        />
+      )}
 
       {/* Floating Action Button */}
       <button
