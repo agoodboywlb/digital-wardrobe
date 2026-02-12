@@ -1,11 +1,9 @@
 import { createContext, useContext, useEffect, useState } from 'react'
+import type { AuthChangeEvent, Session, User } from '@supabase/supabase-js'
+import type React from 'react'
 
-
-import { supabase } from '../lib/supabase'
-
-import type { Database } from '../types/database'
-import type { Session, User } from '@supabase/supabase-js'
-import type React from 'react';
+import { supabase } from '@/lib/supabase'
+import type { Database } from '@/types/database'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 
@@ -29,18 +27,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     useEffect(() => {
         // Initialize auth listener
         // onAuthStateChange fires 'INITIAL_SESSION' automatically, so we don't need manual getSession()
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session);
-            setUser(session?.user ?? null);
-            if (session?.user) {
-                // Only fetch profile if not already loaded or if user changed?
-                // For now, let's trust that onAuthStateChange doesn't fire excessively
-                void fetchProfile(session.user.id);
-            } else {
-                setProfile(null);
-                setLoading(false);
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            (_event: AuthChangeEvent, session: Session | null) => {
+                setSession(session);
+                setUser(session?.user ?? null);
+                if (session?.user) {
+                    // Only fetch profile if not already loaded or if user changed?
+                    // For now, let's trust that onAuthStateChange doesn't fire excessively
+                    void fetchProfile(session.user.id);
+                } else {
+                    setProfile(null);
+                    setLoading(false);
+                }
             }
-        });
+        );
 
         return () => subscription.unsubscribe();
     }, []);
