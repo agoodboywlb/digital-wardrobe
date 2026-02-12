@@ -20,7 +20,7 @@
 ### 全局目录结构
 
 ```
-jj-project/
+digital-wardrobe/
 ├── .agent/                    # 全局 Agent 配置
 │   ├── rules/                 # 详细开发规则
 │   └── skills/                # 常用技能脚本

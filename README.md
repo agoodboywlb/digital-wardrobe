@@ -108,7 +108,7 @@ npm run dev
 ## 📁 项目结构
 
 ```
-jj-project/
+digital-wardrobe/
 ├── .agent/                    # AI Agent 配置
 ├── docs/                      # 全局项目文档
 ├── wardrobe-front/            # 前端项目 (Digital Wardrobe)

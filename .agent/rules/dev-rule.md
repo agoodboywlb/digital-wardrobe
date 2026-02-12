@@ -2,7 +2,7 @@
 trigger: always_on
 ---
 
-# JJ-Project 全局开发规范
+# Digital Wardrobe 全局开发规范
 
 > Digital Wardrobe — 移动端优先的智能衣橱管理平台
 > **交互语言: 简体中文**
@@ -10,7 +10,7 @@ trigger: always_on
 ## 项目架构总览
 
 ```text
-jj-project/
+digital-wardrobe/
 ├── digital-wardrobe/       # 前端 → 规范见 GEMINI.md
 ├── wardrobe-backend/
 │   ├── ai-service/         # AI 服务 → 规范见 GEMINI.md
