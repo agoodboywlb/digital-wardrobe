@@ -31,11 +31,6 @@ jj-project/
 3. **配置驱动**: 禁止硬编码敏感信息，使用 `.env` 管理。
 4. **类型安全**: TypeScript `strict: true`，Python `mypy --strict`。
 
-## 跨项目协作
-
-- **接口契约**: AI 服务 `POST /generate-outfit`，前端通过 `VITE_AI_SERVICE_URL` 引用。
-- **降级策略**: AI 服务不可用时，前端自动回退到本地规则引擎。
-- **Git 分支**: `main` (稳定) / `feature/*` (开发) / `fix/*` (修复)
 
 
 ## 质量红线 (Go/No-Go)
