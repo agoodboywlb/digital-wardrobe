@@ -19,6 +19,9 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "validate": "npm run type-check && npm run lint && npm run format:check",
+    "db:pull": "supabase db pull",
+    "db:push": "supabase db push",
+    "db:gen:types": "supabase gen types typescript --linked > src/types/database.ts",
     "prepare": "husky install"
   },
   "dependencies": {

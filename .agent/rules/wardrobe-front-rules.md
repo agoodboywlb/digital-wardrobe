@@ -16,7 +16,9 @@ For detailed coding standards, please refer to the specific rule files:
 - **[Coding Style](./coding-style.md)**: Naming conventions, formatting, comments.
 - **[TypeScript](./typescript-best-practices.md)**: Type definitions, strict mode.
 - **[React](./react-best-practices.md)**: Component structure, hooks, state.
+
 - **[UI & Styling](./ui-styling.md)**: CSS architecture, component styling.
+- **[Database Workflow](./supabase-workflow.md)**: Supabase migrations, Pull/Push workflow.
 
 ---
 
