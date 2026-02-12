@@ -48,7 +48,9 @@ develop-eggs/
 downloads/
 eggs/
 .eggs/
-lib/
+# Only ignore Python lib directories, not frontend src/lib
+wardrobe-backend/**/lib/
+wardrobe-backend/**/lib64/
 lib64/
 parts/
 sdist/
