@@ -1,8 +1,9 @@
-import logging
 import json
+import logging
 import re
-from typing import List, Optional
+
 from google import genai
+
 from ai_service.core.config import settings
 from ai_service.models.outfit import ClothingItem, OutfitRequest, OutfitResponse
 
@@ -12,7 +13,7 @@ class OutfitService:
     def __init__(self) -> None:
         self.client = genai.Client(api_key=settings.gemini_api_key)
 
-    def map_llm_output_to_ids(self, llm_output_ids: List[str], available_items: List[ClothingItem]) -> List[str]:
+    def map_llm_output_to_ids(self, llm_output_ids: list[str], available_items: list[ClothingItem]) -> list[str]:
         """
         Fix logic: If LLM returned names instead of IDs, try to map them back.
         """
@@ -72,8 +73,9 @@ class OutfitService:
         )
         
         # Extract JSON
-        match = re.search(r'(\{.*\})', response.text, re.DOTALL)
-        content = match.group(1) if match else response.text.strip()
+        text = response.text or ""
+        match = re.search(r'(\{.*\})', text, re.DOTALL)
+        content = match.group(1) if match else text.strip()
         result = json.loads(content)
         
         # Fix IDs

@@ -1,9 +1,11 @@
 import logging
+
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
+
 from ai_service.api.routes import router
 from ai_service.core.config import settings
 
@@ -27,12 +29,12 @@ app.add_middleware(
 
 # Exception handlers
 @app.exception_handler(Exception)
-async def global_exception_handler(request, exc):
+async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     logger.error(f"Global error: {exc}", exc_info=True)
     return JSONResponse(status_code=500, content={"detail": str(exc)})
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request, exc):
+async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
     logger.error(f"Validation error: {exc}")
     return JSONResponse(status_code=400, content={"detail": str(exc)})
 

@@ -1,8 +1,8 @@
-import pytest
-from ai_service.services.outfit_service import OutfitService
 from ai_service.models.outfit import ClothingItem
+from ai_service.services.outfit_service import OutfitService
 
-def test_map_llm_output_to_ids():
+
+def test_map_llm_output_to_ids() -> None:
     service = OutfitService()
     items = [
         ClothingItem(id="uuid-1", name="Blue T-Shirt", category="tops"),
