@@ -22,7 +22,7 @@
     "db:pull": "supabase db pull",
     "db:push": "supabase db push",
     "db:gen:types": "supabase gen types typescript --linked > src/types/database.ts",
-    "prepare": "husky install"
+    "prepare": "test -d .git && husky install || echo 'Skipping husky (not a git repo)'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.95.3",
