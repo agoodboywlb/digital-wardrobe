@@ -1,9 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { assistantService } from '../assistantService';
+
 import { wardrobeService } from '@/features/wardrobe/services/wardrobeService';
-import { weatherService } from '../weatherService';
-import type { ClothingItem } from '@/types/index';
 import { Category, ItemStatus } from '@/types/index';
+
+import { assistantService } from '../assistantService';
+import { weatherService } from '../weatherService';
+
+import type { ClothingItem } from '@/types/index';
+
 
 // Mock dependencies
 vi.mock('@/features/wardrobe/services/wardrobeService');

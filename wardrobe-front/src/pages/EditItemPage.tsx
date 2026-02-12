@@ -1,18 +1,18 @@
-import { ChevronLeft, Camera, Image as ImageIcon, CircleCheck, ChevronDown, Loader2, Trash2, Tag, Calendar, DollarSign, Info, RefreshCcw, Plus, Scissors } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
+import { ChevronLeft, CircleCheck, ChevronDown, Loader2, Trash2, Tag, Calendar, DollarSign, Info, RefreshCcw } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import MultiImageUploader from '@/components/common/MultiImageUploader';
 import { wardrobeService } from '@/features/wardrobe/services/wardrobeService';
 import { ItemStatus } from '@/types/index';
-import ImageEditor from '@/components/common/ImageEditor';
 
+import type { MultiImageFile } from '@/components/common/MultiImageUploader';
 import type { ClothingItem, Category } from '@/types/index';
 import type React from 'react';
 
 const EditItemPage: React.FC = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [item, setItem] = useState<ClothingItem | null>(null);
     const [loading, setLoading] = useState(true);
@@ -28,13 +28,12 @@ const EditItemPage: React.FC = () => {
     const [price, setPrice] = useState<string>('');
     const [purchaseDate, setPurchaseDate] = useState('');
     const [lastWorn, setLastWorn] = useState('');
-    const [imageFile, setImageFile] = useState<File | null>(null);
-    const [previewUrl, setPreviewUrl] = useState<string>('');
     const [selectedSeason, setSelectedSeason] = useState<string>('');
     const [tags, setTags] = useState<string>('');
     const [status, setStatus] = useState<ItemStatus>(ItemStatus.InWardrobe);
-    const [isEditingImage, setIsEditingImage] = useState(false);
-    const [originalImageUrl, setOriginalImageUrl] = useState<string>('');
+
+    // Multi-image state
+    const [images, setImages] = useState<MultiImageFile[]>([]);
 
     useEffect(() => {
         const loadItem = async () => {
@@ -52,8 +51,24 @@ const EditItemPage: React.FC = () => {
                     setPrice(data.price?.toString() || '');
                     setPurchaseDate(data.purchaseDate || '');
                     setLastWorn(data.lastWorn || '');
-                    setPreviewUrl(data.imageUrl);
                     setStatus(data.status);
+
+                    // Initialize multi-image state
+                    if (data.images && data.images.length > 0) {
+                        setImages(data.images.map(img => ({
+                            id: img.id,
+                            url: img.imageUrl,
+                            isPrimary: img.isPrimary,
+                            dbId: img.id
+                        })));
+                    } else if (data.imageUrl) {
+                        setImages([{
+                            id: 'legacy-main',
+                            url: data.imageUrl,
+                            isPrimary: true
+                        }]);
+                    }
+
                     if (data.season) {
                         setSelectedSeason(data.season);
                     }
@@ -70,31 +85,6 @@ const EditItemPage: React.FC = () => {
         void loadItem();
     }, [id]);
 
-    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            const url = URL.createObjectURL(file);
-            setOriginalImageUrl(url);
-            setPreviewUrl(url);
-            setImageFile(file);
-            setIsEditingImage(true);
-        }
-    };
-
-    const handleImageSave = (blob: Blob, preview: string) => {
-        // 转换为 webp 格式以大幅减小体积
-        const fileName = (imageFile?.name || 'item.jpg').replace(/\.[^/.]+$/, "") + ".webp";
-        const file = new File([blob], fileName, { type: 'image/webp' });
-        setImageFile(file);
-        setPreviewUrl(preview);
-        setIsEditingImage(false);
-    };
-
-    const handleStartEditCurrent = () => {
-        setOriginalImageUrl(previewUrl);
-        setIsEditingImage(true);
-    };
-
     const handleSave = async () => {
         if (!id || !name || !selectedCategory) {
             alert('请填写名称和分类');
@@ -103,10 +93,44 @@ const EditItemPage: React.FC = () => {
 
         setSaving(true);
         try {
-            let imageUrl = previewUrl;
-            if (imageFile) {
-                imageUrl = await wardrobeService.uploadImage(imageFile);
+            // 1. Detect and delete removed images
+            const originalImageIds = item?.images?.map(img => img.id) || [];
+            const currentImageDbIds = images.filter(img => img.dbId).map(img => img.dbId);
+            const toDelete = originalImageIds.filter(oid => !currentImageDbIds.includes(oid));
+
+            await Promise.all(toDelete.map(imgId => wardrobeService.deleteItemImage(imgId, id)));
+
+            // 2. Upload and add new images
+            await Promise.all(images.map(async (img) => {
+                if (img.file) {
+                    const url = await wardrobeService.uploadImage(img.file);
+                    await wardrobeService.addItemImage(id, url);
+                }
+            }));
+
+            // 3. Update primary and reorder (Fetch again to get all current DB IDs)
+            const updatedItem = await wardrobeService.fetchItem(id);
+            if (updatedItem?.images) {
+                const intendedPrimary = images.find(img => img.isPrimary);
+                const dbPrimary = updatedItem.images.find(img => img.imageUrl === intendedPrimary?.url);
+
+                if (dbPrimary) {
+                    await wardrobeService.setPrimaryImage(dbPrimary.id, id);
+                }
+
+                const sortedIds = images.map(stateImg => {
+                    const match = updatedItem.images?.find(dbImg => dbImg.imageUrl === stateImg.url);
+                    return match?.id;
+                }).filter(Boolean) as string[];
+
+                if (sortedIds.length > 0) {
+                    await wardrobeService.reorderImages(sortedIds);
+                }
             }
+
+            // 4. Update basic info
+            const primaryImage = images.find(img => img.isPrimary) || images[0];
+            const mainImageUrl = primaryImage?.url || '';
 
             await wardrobeService.updateItem(id, {
                 name,
@@ -117,7 +141,7 @@ const EditItemPage: React.FC = () => {
                 price: price ? parseFloat(price) : undefined,
                 purchaseDate: purchaseDate || undefined,
                 lastWorn: lastWorn || undefined,
-                imageUrl,
+                imageUrl: mainImageUrl,
                 status,
                 season: selectedSeason || undefined,
                 tags: [
@@ -126,7 +150,6 @@ const EditItemPage: React.FC = () => {
                 ]
             });
 
-            // Use replace: true to prevent back button from returning here
             void navigate(`/item/${id}`, { replace: true });
         } catch (error) {
             console.error("Error updating item", error);
@@ -163,7 +186,6 @@ const EditItemPage: React.FC = () => {
 
     return (
         <div className="flex flex-col h-screen bg-background-light dark:bg-background-dark overflow-hidden">
-            {/* Header */}
             <header className="flex items-center bg-white dark:bg-surface-dark px-4 h-14 justify-between sticky top-0 z-30 border-b border-gray-100 dark:border-gray-800">
                 <button onClick={() => { void navigate(-1); }} className="text-text-main dark:text-white flex size-10 items-center justify-start">
                     <ChevronLeft className="w-6 h-6" />
@@ -175,48 +197,17 @@ const EditItemPage: React.FC = () => {
             </header>
 
             <div className="flex-1 overflow-y-auto pb-32">
-                {/* Image Area */}
                 <div className="p-4">
-                    <div className="relative aspect-square w-full rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-200 dark:border-gray-700 shadow-sm">
-                        {previewUrl ? (
-                            <img src={previewUrl} alt="Preview" className="absolute inset-0 w-full h-full object-cover" />
-                        ) : (
-                            <ImageIcon className="w-12 h-12 text-gray-300" />
-                        )}
-                        {previewUrl && (
-                            <div className="absolute top-4 right-4 z-10 flex gap-2">
-                                <button
-                                    type="button"
-                                    onClick={handleStartEditCurrent}
-                                    className="size-12 rounded-full bg-white/90 dark:bg-black/60 shadow-lg backdrop-blur-md flex items-center justify-center text-primary border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform"
-                                >
-                                    <Scissors className="w-6 h-6" />
-                                </button>
-                            </div>
-                        )}
-                        <div className="absolute bottom-4 right-4 flex gap-2">
-                            <button
-                                type="button"
-                                onClick={() => fileInputRef.current?.click()}
-                                className="size-12 rounded-full bg-white/90 dark:bg-black/60 shadow-lg backdrop-blur-md flex items-center justify-center text-primary border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform">
-                                <Camera className="w-6 h-6" />
-                            </button>
-                        </div>
-                        <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageSelect} />
-                    </div>
+                    <label className="flex items-center gap-2 text-text-secondary text-xs font-bold mb-3 uppercase tracking-wider px-1">
+                        单品图片管理 (最多 8 张)
+                    </label>
+                    <MultiImageUploader
+                        images={images}
+                        onImagesChange={setImages}
+                    />
                 </div>
 
-                {isEditingImage && (
-                    <ImageEditor
-                        image={originalImageUrl}
-                        onSave={handleImageSave}
-                        onCancel={() => setIsEditingImage(false)}
-                    />
-                )}
-
-                {/* Form Fields */}
                 <div className="px-4 space-y-6">
-                    {/* Basic Info */}
                     <section className="space-y-4">
                         <div>
                             <label htmlFor="item-name" className="flex items-center gap-2 text-text-secondary text-xs font-bold mb-2 uppercase tracking-wider px-1">
@@ -272,7 +263,6 @@ const EditItemPage: React.FC = () => {
                         </div>
                     </section>
 
-                    {/* Detailed Attributes */}
                     <section className="space-y-4">
                         <label htmlFor="item-brand" className="flex items-center gap-2 text-text-secondary text-xs font-bold mb-2 uppercase tracking-wider px-1">
                             <Tag className="w-3.5 h-3.5" /> 属性详情
@@ -314,7 +304,6 @@ const EditItemPage: React.FC = () => {
                         </div>
                     </section>
 
-                    {/* Expandable Section: More Details */}
                     <section className="space-y-4">
                         <button
                             type="button"
@@ -324,7 +313,6 @@ const EditItemPage: React.FC = () => {
                             <span className="flex items-center gap-2 text-text-secondary text-xs font-bold uppercase tracking-wider cursor-pointer group-hover:text-primary transition-colors">
                                 <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showMore ? 'rotate-180' : ''}`} /> 更多细节 (价格、日期等)
                             </span>
-                            {!showMore && <span className="text-[10px] text-primary font-bold bg-primary/10 px-2 py-0.5 rounded-full">扩展</span>}
                         </button>
 
                         <div className={`overflow-hidden transition-all duration-500 ease-in-out ${showMore ? 'max-h-[1000px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
@@ -384,23 +372,11 @@ const EditItemPage: React.FC = () => {
                                     />
                                 </div>
                             </div>
-                            <p className="text-[10px] text-gray-400 px-2 leading-relaxed">
-                                完善这些信息可以帮助我们为您提供更准确的衣橱统计，或者添加自定义分类标签。
-                            </p>
                         </div>
                     </section>
-
-                    {/* New Field Entry Point (Future) */}
-                    <div className="py-4 flex justify-center">
-                        <button type="button" className="flex items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-primary transition-colors py-2 px-4 rounded-full bg-gray-50 dark:bg-white/5 border border-dashed border-gray-200 dark:border-gray-800">
-                            <Plus className="w-3.5 h-3.5" />
-                            <span>请求增加更多字段...</span>
-                        </button>
-                    </div>
                 </div>
             </div>
 
-            {/* Footer Actions */}
             <footer className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] p-4 bg-white/90 dark:bg-background-dark/90 backdrop-blur-xl border-t border-gray-100 dark:border-gray-800 pb-8 z-40">
                 <button
                     type="button"
@@ -411,7 +387,7 @@ const EditItemPage: React.FC = () => {
                         <Loader2 className="w-5 h-5 animate-spin" />
                     ) : (
                         <>
-                            <span>完成更改</span>
+                            <span>保存更改</span>
                             <CircleCheck className="w-5 h-5" />
                         </>
                     )}

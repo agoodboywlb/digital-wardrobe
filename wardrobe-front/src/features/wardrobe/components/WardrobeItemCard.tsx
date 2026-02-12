@@ -1,9 +1,9 @@
 import { Tag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+import OptimizedImage from '@/components/common/OptimizedImage';
 import { ItemStatus } from '@/types/index';
 import { getCategoryLabel } from '@/utils/formatters';
-import OptimizedImage from '@/components/common/OptimizedImage';
 
 import type { ClothingItem } from '@/types/index';
 import type React from 'react';

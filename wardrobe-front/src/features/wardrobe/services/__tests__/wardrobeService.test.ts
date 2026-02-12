@@ -1,7 +1,9 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { wardrobeService } from '../wardrobeService';
+
 import { supabase } from '@/lib/supabase';
+
+import { wardrobeService } from '../wardrobeService';
 
 // Mock supabase client
 vi.mock('@/lib/supabase', () => ({
@@ -78,5 +80,30 @@ describe('WardrobeService Data Isolation', () => {
         });
 
         await expect(wardrobeService.fetchItems()).rejects.toThrow('用户未登录或会话已过期');
+    });
+
+    it('fetchItem should include associated images', async () => {
+        const mockItem = {
+            id: '1',
+            name: 'Shirt',
+            user_id: mockUserId,
+            item_images: [
+                { id: 'img-1', item_id: '1', image_url: 'url-1', is_primary: true, sort_order: 0, created_at: new Date().toISOString() }
+            ]
+        };
+
+        (supabase.from as any).mockReturnValue({
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            single: vi.fn().mockResolvedValue({ data: mockItem, error: null }),
+        });
+
+        const item = await wardrobeService.fetchItem('1');
+
+        expect(supabase.from).toHaveBeenCalledWith('items');
+        const fromResult = (supabase.from as any).mock.results[0].value;
+        expect(fromResult.select).toHaveBeenCalledWith('*, item_images(*)');
+        expect(item?.images).toHaveLength(1);
+        expect(item?.images?.[0]?.imageUrl).toBe('url-1');
     });
 });

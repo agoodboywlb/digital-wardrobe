@@ -3,7 +3,7 @@ trigger: model_decision
 description: when needing overview of wardrobe-front project architecture, directory structure, or general frontend rules
 ---
 
-# Digital Wardrobe: Frontend Project Rules
+# digital-wardrobe: Frontend Project Rules
 
 > **Scope**: `wardrobe-front` project specific architecture and business rules.
 > **Tech Stack**: React 19, TypeScript 5.8, Vite 6, Supabase.

@@ -3,12 +3,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, ResponsiveContainer, Cell, PieChart as RePie, Pie } from 'recharts';
 
+import OptimizedImage from '@/components/common/OptimizedImage';
 import { wardrobeService } from '@/features/wardrobe/services/wardrobeService';
 import { getCategoryLabel, getCategoryColor } from '@/utils/formatters';
 
 import type { WardrobeStats } from '@/types/index';
 import type React from 'react';
-import OptimizedImage from '@/components/common/OptimizedImage';
 
 const StatsPage: React.FC = () => {
   const navigate = useNavigate();

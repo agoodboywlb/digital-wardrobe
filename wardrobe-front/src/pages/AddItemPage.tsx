@@ -1,17 +1,16 @@
-import { ChevronLeft, Camera, Image as ImageIcon, CircleCheck, ChevronDown, Loader2, Info, Tag, Calendar, DollarSign, RefreshCcw, Plus, Scissors } from 'lucide-react';
-import { useState, useRef } from 'react';
+import { ChevronLeft, CircleCheck, ChevronDown, Loader2, Info, Tag, Calendar, DollarSign, RefreshCcw, Plus } from 'lucide-react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import MultiImageUploader from '@/components/common/MultiImageUploader';
 import { wardrobeService } from '@/features/wardrobe/services/wardrobeService';
 import { ItemStatus } from '@/types/index';
-import ImageEditor from '@/components/common/ImageEditor';
 
 import type { Category } from '@/types/index';
 import type React from 'react';
 
 const AddItemPage: React.FC = () => {
   const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(false);
   const [showMore, setShowMore] = useState(false);
@@ -25,32 +24,11 @@ const AddItemPage: React.FC = () => {
   const [price, setPrice] = useState<string>('');
   const [purchaseDate, setPurchaseDate] = useState('');
   const [lastWorn, setLastWorn] = useState('');
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>('');
   const [selectedSeason, setSelectedSeason] = useState<string>('');
   const [tags, setTags] = useState<string>('');
-  const [isEditingImage, setIsEditingImage] = useState(false);
-  const [originalImageUrl, setOriginalImageUrl] = useState<string>('');
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const url = URL.createObjectURL(file);
-      setOriginalImageUrl(url);
-      setPreviewUrl(url);
-      setImageFile(file);
-      setIsEditingImage(true); // 选中后直接进入编辑
-    }
-  };
-
-  const handleImageSave = (blob: Blob, preview: string) => {
-    // 转换为 webp 格式以大幅减小体积
-    const fileName = (imageFile?.name || 'item.jpg').replace(/\.[^/.]+$/, "") + ".webp";
-    const file = new File([blob], fileName, { type: 'image/webp' });
-    setImageFile(file);
-    setPreviewUrl(preview);
-    setIsEditingImage(false);
-  };
+  // Multi-image state
+  const [images, setImages] = useState<any[]>([]);
 
   const handleSave = async () => {
     if (!name || !selectedCategory) {
@@ -60,14 +38,21 @@ const AddItemPage: React.FC = () => {
 
     setLoading(true);
     try {
-      let imageUrl = '';
-      if (imageFile) {
-        imageUrl = await wardrobeService.uploadImage(imageFile);
-      } else {
-        imageUrl = 'https://via.placeholder.com/400x400?text=No+Image';
-      }
+      // 1. Upload all images
+      const uploadPromises = images.map(async (img) => {
+        if (img.file) {
+          const url = await wardrobeService.uploadImage(img.file);
+          return { ...img, url };
+        }
+        return img;
+      });
 
-      await wardrobeService.addItem({
+      const uploadedImages = await Promise.all(uploadPromises);
+      const primaryImage = uploadedImages.find(img => img.isPrimary) || uploadedImages[0];
+      const mainImageUrl = primaryImage?.url || 'https://via.placeholder.com/400x400?text=No+Image';
+
+      // 2. Create the item
+      const newItem = await wardrobeService.addItem({
         name,
         category: selectedCategory as Category,
         brand: brand || undefined,
@@ -76,12 +61,21 @@ const AddItemPage: React.FC = () => {
         price: price ? parseFloat(price) : undefined,
         purchaseDate: purchaseDate || undefined,
         lastWorn: lastWorn || undefined,
-        imageUrl,
+        imageUrl: mainImageUrl,
         status: ItemStatus.InWardrobe,
         season: selectedSeason || undefined,
         tags: tags.split(/[,，]/).map(t => t.trim()).filter(t => t !== ''),
         wearCount: 0
       });
+
+      // 3. Save all images to item_images table
+      const imgPromises = uploadedImages.map((img) =>
+        wardrobeService.addItemImage(newItem.id, img.url, undefined)
+      );
+      // Note: addItemImage already handles first image as primary in its current implementation,
+      // but since we want to be explicit about our UI order:
+      // We might need a batch version for better performance, but sequential is fine for now.
+      await Promise.all(imgPromises);
 
       void navigate('/');
     } catch (error) {
@@ -104,47 +98,16 @@ const AddItemPage: React.FC = () => {
       </header>
 
       <div className="flex-1 overflow-y-auto pb-32">
-        {/* Image Area */}
+        {/* Multi-Image Area */}
         <div className="p-4">
-          <div className="relative aspect-square w-full rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-200 dark:border-gray-700 shadow-sm">
-            {previewUrl ? (
-              <img src={previewUrl} alt="Preview" className="absolute inset-0 w-full h-full object-cover" />
-            ) : (
-              <div className="flex flex-col items-center gap-2">
-                <ImageIcon className="w-12 h-12 text-gray-300" />
-                <p className="text-xs text-gray-400 font-medium">点击下方相机选择照片</p>
-              </div>
-            )}
-            {previewUrl && (
-              <div className="absolute top-4 right-4 z-10 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsEditingImage(true)}
-                  className="size-12 rounded-full bg-white/90 dark:bg-black/60 shadow-lg backdrop-blur-md flex items-center justify-center text-primary border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform"
-                >
-                  <Scissors className="w-6 h-6" />
-                </button>
-              </div>
-            )}
-            <div className="absolute bottom-4 right-4 flex gap-2">
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="size-12 rounded-full bg-white/90 dark:bg-black/60 shadow-lg backdrop-blur-md flex items-center justify-center text-primary border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform">
-                <Camera className="w-6 h-6" />
-              </button>
-            </div>
-            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageSelect} />
-          </div>
-        </div>
-
-        {isEditingImage && (
-          <ImageEditor
-            image={originalImageUrl}
-            onSave={handleImageSave}
-            onCancel={() => setIsEditingImage(false)}
+          <label className="flex items-center gap-2 text-text-secondary text-xs font-bold mb-3 uppercase tracking-wider px-1">
+            相机拍照 / 上传图片
+          </label>
+          <MultiImageUploader
+            images={images}
+            onImagesChange={setImages}
           />
-        )}
+        </div>
 
         {/* Form Fields */}
         <div className="px-4 space-y-6">

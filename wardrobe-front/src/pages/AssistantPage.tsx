@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { assistantService } from '../features/assistant/services/assistantService';
-import type { RecommendationResult } from '../features/assistant/types';
+import { useState, useEffect } from 'react';
+
 import OptimizedImage from '../components/common/OptimizedImage';
+import { assistantService } from '../features/assistant/services/assistantService';
+
+import type { RecommendationResult } from '../features/assistant/types';
+import type React from 'react';
 
 const AssistantPage: React.FC = () => {
     // 优先从缓存读取城市，不再默认硬编码为"北京"
@@ -13,7 +16,7 @@ const AssistantPage: React.FC = () => {
     const [isLocating, setIsLocating] = useState(false);
 
     const fetchRecommendation = async (searchCity: string) => {
-        if (!searchCity) return;
+        if (!searchCity) {return;}
 
         setLoading(true);
         setError(null);
@@ -79,7 +82,7 @@ const AssistantPage: React.FC = () => {
 
     const handleCitySubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!city.trim()) return;
+        if (!city.trim()) {return;}
 
         localStorage.setItem('wardrobe_city', city);
         setIsEditingCity(false);

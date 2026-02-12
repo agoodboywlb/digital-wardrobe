@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 
 import { wardrobeService } from '@/features/wardrobe/services/wardrobeService';
+import { getPinyinInitials, matchPinyin } from '@/utils/helpers/pinyinSearch';
 
 import type { ClothingItem } from '@/types/index';
 
@@ -13,6 +14,14 @@ export const useWardrobe = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [activeSeason, setActiveSeason] = useState<string | null>(null);
     const [activeStatus, setActiveStatus] = useState<string | null>(null);
+
+    // New Filters
+    const [activeBrands, setActiveBrands] = useState<string[]>([]);
+    const [priceRange, setPriceRange] = useState<{ min: number; max: number } | null>(null);
+
+    // Pinyin Index: itemId -> strings[]
+    const [pinyinIndex, setPinyinIndex] = useState<Record<string, string[]>>({});
+
     const [error, setError] = useState<Error | null>(null);
 
     useEffect(() => {
@@ -31,6 +40,30 @@ export const useWardrobe = () => {
         };
         void loadItems();
     }, []);
+
+    // Generate Pinyin Index when items load
+    useEffect(() => {
+        if (items.length === 0) {return;}
+
+        const generateIndex = async () => {
+            const index: Record<string, string[]> = {};
+            // Use Promise.all if items are many? But loop is fine for now.
+            // getPinyinInitials handles dynamic import, might be async.
+
+            // Process in chunks or just loop. JS is single threaded.
+            for (const item of items) {
+                const fields = [item.name, item.brand, ...item.tags].filter(Boolean) as string[];
+                const allInitials: string[] = [];
+                for (const field of fields) {
+                    const initials = await getPinyinInitials(field);
+                    allInitials.push(...initials);
+                }
+                index[item.id] = Array.from(new Set(allInitials));
+            }
+            setPinyinIndex(index);
+        };
+        void generateIndex();
+    }, [items]);
 
     const getCategoryValue = (label: string) => {
         switch (label) {
@@ -63,6 +96,38 @@ export const useWardrobe = () => {
         }
     };
 
+    // Calculate Available Brands (memoized)
+    const availableBrands = useMemo(() => {
+        const brandCounts: Record<string, number> = {};
+        for (const item of items) {
+            // Check if brand exists and is string
+            if (item.brand && typeof item.brand === 'string') {
+                const brand = item.brand.trim();
+                if (brand) {
+                    brandCounts[brand] = (brandCounts[brand] || 0) + 1;
+                }
+            }
+        }
+
+        // Case-insensitive merge logic
+        const mergedCounts: Record<string, { count: number, original: string }> = {};
+        Object.entries(brandCounts).forEach(([brand, count]) => {
+            const key = brand.toLowerCase();
+            if (!mergedCounts[key]) {
+                mergedCounts[key] = { count: 0, original: brand };
+            }
+            mergedCounts[key].count += count;
+            // Keep the casing that is most frequent (if current count > existing original's count)
+            if (count > (brandCounts[mergedCounts[key].original] || 0)) {
+                mergedCounts[key].original = brand;
+            }
+        });
+
+        return Object.values(mergedCounts)
+            .sort((a, b) => b.count - a.count)
+            .map(x => x.original);
+    }, [items]);
+
     const filteredItems = useMemo(() => {
         return items.filter(item => {
             // Category Filter
@@ -76,20 +141,27 @@ export const useWardrobe = () => {
             let matchesSearch = true;
             if (searchTerm) {
                 const lowerTerm = searchTerm.toLowerCase();
-                matchesSearch = item.name.toLowerCase().includes(lowerTerm) ||
+                // Standard match
+                const standardMatch = item.name.toLowerCase().includes(lowerTerm) ||
                     (item.brand && item.brand.toLowerCase().includes(lowerTerm)) ||
                     item.tags.some(tag => tag.toLowerCase().includes(lowerTerm));
+
+                // Pinyin match
+                let pinyinMatch = false;
+                if (/^[a-zA-Z]+$/.test(searchTerm)) {
+                    const itemInitials = pinyinIndex[item.id];
+                    if (itemInitials) {
+                        pinyinMatch = matchPinyin(itemInitials, searchTerm);
+                    }
+                }
+
+                matchesSearch = standardMatch || pinyinMatch;
             }
 
-            // Season Filter (ClothingItem tags can contain season or we might need a dedicated field)
-            // For now assume season might be in tags if dedicated field not present in current mock data logic
-            // But types say item might have it? Let's check types.
+            // Season Filter
             let matchesSeason = true;
             if (activeSeason) {
                 const targetSeason = getSeasonValue(activeSeason);
-                // Based on DB schema, items don't have season but Outfits do. 
-                // However, items usually belong to seasons via tags.
-                // Let's check for season in tags.
                 matchesSeason = item.tags.some(tag => tag === activeSeason || tag === targetSeason);
             }
 
@@ -100,9 +172,30 @@ export const useWardrobe = () => {
                 matchesStatus = item.status === targetStatus;
             }
 
-            return matchesCategory && matchesSearch && matchesSeason && matchesStatus;
+            // Brand Filter
+            let matchesBrand = true;
+            if (activeBrands.length > 0) {
+                if (!item.brand) {
+                    matchesBrand = false;
+                } else {
+                    const itemBrandLower = item.brand.trim().toLowerCase();
+                    matchesBrand = activeBrands.some(b => b.toLowerCase() === itemBrandLower);
+                }
+            }
+
+            // Price Filter
+            let matchesPrice = true;
+            if (priceRange) {
+                if (item.price === undefined || item.price === null) {
+                    matchesPrice = false;
+                } else {
+                    matchesPrice = item.price >= priceRange.min && item.price <= priceRange.max;
+                }
+            }
+
+            return matchesCategory && matchesSearch && matchesSeason && matchesStatus && matchesBrand && matchesPrice;
         });
-    }, [items, activeCategory, searchTerm, activeSeason, activeStatus]);
+    }, [items, activeCategory, searchTerm, activeSeason, activeStatus, activeBrands, priceRange, pinyinIndex]);
 
     return {
         items,
@@ -118,11 +211,19 @@ export const useWardrobe = () => {
         setActiveSeason,
         activeStatus,
         setActiveStatus,
+        // New State Exports
+        activeBrands,
+        setActiveBrands,
+        availableBrands,
+        priceRange,
+        setPriceRange,
         resetFilters: () => {
             setActiveCategory('全部');
             setSearchTerm('');
             setActiveSeason(null);
             setActiveStatus(null);
+            setActiveBrands([]);
+            setPriceRange(null);
         }
     };
 };

@@ -211,6 +211,47 @@ export type Database = {
                 }
                 Relationships: []
             }
+            item_images: {
+                Row: {
+                    id: string
+                    item_id: string
+                    image_url: string
+                    label: string | null
+                    sort_order: number
+                    is_primary: boolean
+                    created_at: string
+                    user_id: string
+                }
+                Insert: {
+                    id?: string
+                    item_id: string
+                    image_url: string
+                    label?: string | null
+                    sort_order?: number
+                    is_primary?: boolean
+                    created_at?: string
+                    user_id: string
+                }
+                Update: {
+                    id?: string
+                    item_id?: string
+                    image_url?: string
+                    label?: string | null
+                    sort_order?: number
+                    is_primary?: boolean
+                    created_at?: string
+                    user_id?: string
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "item_images_item_id_fkey"
+                        columns: ["item_id"]
+                        isOneToOne: false
+                        referencedRelation: "items"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            }
         }
         Views: {
             [_ in never]: never

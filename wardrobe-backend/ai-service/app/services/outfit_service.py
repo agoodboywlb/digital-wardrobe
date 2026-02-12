@@ -4,8 +4,8 @@ import re
 
 from google import genai
 
-from ai_service.core.config import settings
-from ai_service.models.outfit import ClothingItem, OutfitRequest, OutfitResponse
+from app.core.config import settings
+from app.models.outfit import ClothingItem, OutfitRequest, OutfitResponse
 
 logger = logging.getLogger(__name__)
 
@@ -43,27 +43,27 @@ class OutfitService:
         ])
         
         prompt = f"""
-        You are a professional fashion stylist. Based on the user's available wardrobe items, weather conditions, and requested vibe, suggest ONE perfect outfit.
+        你是一位专业的时尚造型师。根据用户的衣橱单品、天气条件和风格偏好，推荐一套完美的穿搭方案。
         
-        User's Vibe: {request.vibe}
-        Weather: {request.weather if request.weather else "Not specified"}
+        用户风格偏好: {request.vibe}
+        天气情况: {request.weather if request.weather else "未指定"}
         
-        [CRITICAL] Use the following Available Wardrobe items only:
+        【重要】只能从以下可用衣橱单品中选择：
         {items_desc}
         
-        Instructions:
-        1. Select 2-4 items from the available list that make a cohesive outfit. 
-        2. [STRICT REQUIREMENT] In your JSON response, the "item_ids" field MUST contain the original UUID strings from the list above.
-        3. Provide a catchy title for the outfit.
-        4. Write a short "Stylist Note" explaining why this combination works.
-        5. Categorize the style (e.g., Casual, Formal, Streetwear).
+        要求：
+        1. 从上述列表中选择 2-4 件单品，组成一套协调的穿搭方案
+        2. 【严格要求】JSON 响应中的 "item_ids" 字段必须包含上述列表中的原始 UUID 字符串
+        3. 为穿搭方案起一个吸引人的中文标题
+        4. 用中文撰写简短的"造型师建议"，解释为什么这套搭配效果好
+        5. 用中文标注风格类别（例如：休闲、正式、街头、通勤等）
         
-        Response Format (JSON only):
+        响应格式（仅返回 JSON）：
         {{
-            "title": "Outfit Title",
-            "description": "Stylist Note explaining the choice",
+            "title": "穿搭方案标题（中文）",
+            "description": "造型师建议，解释搭配理由（中文）",
             "item_ids": ["uuid_1", "uuid_2"],
-            "style_category": "Style Category"
+            "style_category": "风格类别（中文）"
         }}
         """
 

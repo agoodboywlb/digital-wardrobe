@@ -1,4 +1,4 @@
-import { Loader2, CirclePlus } from 'lucide-react';
+import { Loader2, CirclePlus, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 
@@ -28,6 +28,11 @@ const WardrobePage: React.FC = () => {
     setActiveSeason,
     activeStatus,
     setActiveStatus,
+    activeBrands,
+    setActiveBrands,
+    availableBrands,
+    priceRange,
+    setPriceRange,
     resetFilters
   } = useWardrobe();
 
@@ -43,6 +48,19 @@ const WardrobePage: React.FC = () => {
     }
   }, [state, setActiveCategory]);
 
+  const handleToggleBrand = (brand: string) => {
+    if (activeBrands.includes(brand)) {
+      setActiveBrands(activeBrands.filter(b => b !== brand));
+    } else {
+      setActiveBrands([...activeBrands, brand]);
+    }
+  };
+
+  const formatPriceRange = (range: { min: number; max: number }) => {
+    if (range.max > 1000000) {return `¥${range.min}+`;}
+    return `¥${range.min}-${range.max}`;
+  };
+
   return (
     <div className="pb-24 bg-background-light dark:bg-background-dark min-h-screen">
       {/* Header Area (Includes Title & Search) */}
@@ -57,17 +75,44 @@ const WardrobePage: React.FC = () => {
           activeCategory={activeCategory}
           onSelectCategory={setActiveCategory}
         />
-        {(activeSeason || activeStatus) && (
+        {(activeSeason || activeStatus || activeBrands.length > 0 || priceRange) && (
           <div className="px-5 py-1 flex flex-wrap gap-2 animate-in fade-in duration-300">
             {activeSeason && (
-              <span className="px-2 py-0.5 bg-primary/20 text-text-main text-[10px] font-bold rounded-md border border-primary/30 uppercase">
+              <button
+                onClick={() => setActiveSeason(null)}
+                className="px-2 py-0.5 bg-primary/20 text-text-main text-[10px] font-bold rounded-md border border-primary/30 uppercase flex items-center gap-1 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 hover:border-red-200 transition-colors group"
+              >
                 季节: {activeSeason}
-              </span>
+                <X size={10} className="hidden group-hover:block" />
+              </button>
             )}
             {activeStatus && (
-              <span className="px-2 py-0.5 bg-primary/20 text-text-main text-[10px] font-bold rounded-md border border-primary/30 uppercase">
+              <button
+                onClick={() => setActiveStatus(null)}
+                className="px-2 py-0.5 bg-primary/20 text-text-main text-[10px] font-bold rounded-md border border-primary/30 uppercase flex items-center gap-1 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 hover:border-red-200 transition-colors group"
+              >
                 状态: {activeStatus}
-              </span>
+                <X size={10} className="hidden group-hover:block" />
+              </button>
+            )}
+            {activeBrands.map(brand => (
+              <button
+                key={brand}
+                onClick={() => handleToggleBrand(brand)}
+                className="px-2 py-0.5 bg-primary/20 text-text-main text-[10px] font-bold rounded-md border border-primary/30 uppercase flex items-center gap-1 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 hover:border-red-200 transition-colors group"
+              >
+                品牌: {brand}
+                <X size={10} className="hidden group-hover:block" />
+              </button>
+            ))}
+            {priceRange && (
+              <button
+                onClick={() => setPriceRange(null)}
+                className="px-2 py-0.5 bg-primary/20 text-text-main text-[10px] font-bold rounded-md border border-primary/30 uppercase flex items-center gap-1 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 hover:border-red-200 transition-colors group"
+              >
+                价格: {formatPriceRange(priceRange)}
+                <X size={10} className="hidden group-hover:block" />
+              </button>
             )}
           </div>
         )}
@@ -81,6 +126,11 @@ const WardrobePage: React.FC = () => {
         activeStatus={activeStatus}
         onSelectStatus={setActiveStatus}
         onReset={resetFilters}
+        activeBrands={activeBrands}
+        onSelectBrand={handleToggleBrand}
+        availableBrands={availableBrands}
+        priceRange={priceRange}
+        onSetPriceRange={setPriceRange}
       />
 
       {/* Grid Content */}

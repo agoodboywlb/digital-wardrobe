@@ -1,4 +1,4 @@
-# 🎨 Digital Wardrobe - 智能数字衣橱
+# 🎨 digital-wardrobe - 智能数字衣橱
 
 <div align="center">
 
@@ -111,7 +111,7 @@ npm run dev
 digital-wardrobe/
 ├── .agent/                    # AI Agent 配置
 ├── docs/                      # 全局项目文档
-├── wardrobe-front/            # 前端项目 (Digital Wardrobe)
+├── wardrobe-front/            # 前端项目 (digital-wardrobe)
 │   ├── src/                   # 源代码
 │   ├── tests/                 # 测试文件
 │   └── ...

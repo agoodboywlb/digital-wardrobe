@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
-from ai_service.models.outfit import OutfitRequest, OutfitResponse
-from ai_service.services.outfit_service import OutfitService
+from app.models.outfit import OutfitRequest, OutfitResponse
+from app.services.outfit_service import OutfitService
 
 router = APIRouter()
 outfit_service = OutfitService()

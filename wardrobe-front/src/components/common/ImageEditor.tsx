@@ -1,7 +1,10 @@
-import React, { useState, useCallback } from 'react';
-import Cropper from 'react-easy-crop';
 import { RotateCw, Maximize, Check, X, Wand2 } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import Cropper from 'react-easy-crop';
+
 import { autoDetectCrop, type PixelCrop } from '@/utils/imageUtils';
+
+import type React from 'react';
 
 interface ImageEditorProps {
     image: string;
@@ -38,7 +41,7 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ image, onSave, onCancel }) =>
     };
 
     const handleSave = async () => {
-        if (!croppedAreaPixels) return;
+        if (!croppedAreaPixels) {return;}
 
         setIsProcessing(true);
         try {

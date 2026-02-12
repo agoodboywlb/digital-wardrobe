@@ -6,8 +6,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from ai_service.api.routes import router
-from ai_service.core.config import settings
+from app.api.routes import router
+from app.core.config import settings
 
 # Configure logging
 logging.basicConfig(
@@ -16,7 +16,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Digital Wardrobe AI Assistant")
+app = FastAPI(title="digital-wardrobe AI Assistant")
 
 # CORS middleware
 app.add_middleware(

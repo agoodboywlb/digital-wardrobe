@@ -3,7 +3,9 @@ import { BaseService } from '@/lib/baseService';
 import type { Database } from '@/types/database';
 import type { Category, ItemStatus, ClothingItem } from '@/types/index';
 
-type ItemDB = Database['public']['Tables']['items']['Row'];
+type ItemDB = Database['public']['Tables']['items']['Row'] & {
+    item_images?: Database['public']['Tables']['item_images']['Row'][];
+};
 type NewItemDB = Database['public']['Tables']['items']['Insert'];
 type ItemUpdateDB = Database['public']['Tables']['items']['Update'];
 
@@ -25,6 +27,15 @@ const mapToClothingItem = (row: ItemDB): ClothingItem => ({
     cpw: row.cpw || undefined,
     wearCount: row.wear_count || 0,
     season: row.sub_category || undefined,
+    images: row.item_images?.map(img => ({
+        id: img.id,
+        itemId: img.item_id,
+        imageUrl: img.image_url,
+        label: img.label || undefined,
+        sortOrder: img.sort_order,
+        isPrimary: img.is_primary,
+        createdAt: img.created_at
+    })).sort((a, b) => a.sortOrder - b.sortOrder)
 });
 
 export class WardrobeService extends BaseService {
@@ -36,7 +47,7 @@ export class WardrobeService extends BaseService {
         const userId = await this.getCurrentUserId();
         const { data, error } = await this.client
             .from('items')
-            .select('*')
+            .select('*, item_images(*)')
             .eq('user_id', userId)
             .order('created_at', { ascending: false });
 
@@ -44,7 +55,7 @@ export class WardrobeService extends BaseService {
             this.handleError(error, 'WardrobeService.fetchItems');
         }
 
-        return (data || []).map(mapToClothingItem);
+        return (data || []).map((row: any) => mapToClothingItem(row));
     }
 
     /**
@@ -55,7 +66,7 @@ export class WardrobeService extends BaseService {
         const userId = await this.getCurrentUserId();
         const { data, error } = await this.client
             .from('items')
-            .select('*')
+            .select('*, item_images(*)')
             .eq('id', id)
             .eq('user_id', userId)
             .single();
@@ -70,7 +81,7 @@ export class WardrobeService extends BaseService {
 
         if (!data) { return null; }
 
-        return mapToClothingItem(data);
+        return mapToClothingItem(data as any);
     }
 
     /**
@@ -168,6 +179,141 @@ export class WardrobeService extends BaseService {
 
         if (error) {
             this.handleError(error, 'WardrobeService.deleteItem');
+        }
+    }
+
+    /**
+     * Add a new image for an item
+     */
+    async addItemImage(itemId: string, imageUrl: string, label?: string): Promise<void> {
+        const userId = await this.getCurrentUserId();
+
+        // Check if this is the first image to set it as primary
+        const { count } = await this.client
+            .from('item_images')
+            .select('*', { count: 'exact', head: true })
+            .eq('item_id', itemId);
+
+        const isPrimary = count === 0;
+
+        const { error: imgError } = await this.client
+            .from('item_images')
+            .insert({
+                item_id: itemId,
+                image_url: imageUrl,
+                label: label || null,
+                is_primary: isPrimary,
+                user_id: userId,
+                sort_order: (count || 0)
+            });
+
+        if (imgError) {
+            this.handleError(imgError, 'WardrobeService.addItemImage');
+        }
+
+        // If it's primary, update the main items table
+        if (isPrimary) {
+            await this.updateItem(itemId, { imageUrl });
+        }
+    }
+
+    /**
+     * Delete an image
+     */
+    async deleteItemImage(imageId: string, itemId: string): Promise<void> {
+        const userId = await this.getCurrentUserId();
+
+        // 1. Check if it was primary before deleting
+        const { data: imgData } = await this.client
+            .from('item_images')
+            .select('is_primary')
+            .eq('id', imageId)
+            .single();
+
+        const wasPrimary = imgData?.is_primary || false;
+
+        // 2. Delete the image
+        const { error } = await this.client
+            .from('item_images')
+            .delete()
+            .eq('id', imageId)
+            .eq('user_id', userId);
+
+        if (error) {
+            this.handleError(error, 'WardrobeService.deleteItemImage');
+        }
+
+        // 3. If primary was deleted, promote another one
+        if (wasPrimary) {
+            const { data: nextImg } = await this.client
+                .from('item_images')
+                .select('id, image_url')
+                .eq('item_id', itemId)
+                .order('sort_order', { ascending: true })
+                .limit(1)
+                .maybeSingle();
+
+            if (nextImg) {
+                await this.setPrimaryImage(nextImg.id, itemId);
+            } else {
+                // No images left
+                await this.updateItem(itemId, { imageUrl: '' });
+            }
+        }
+    }
+
+    /**
+     * Set an image as primary
+     */
+    async setPrimaryImage(imageId: string, itemId: string): Promise<void> {
+        const userId = await this.getCurrentUserId();
+
+        // 1. Get the image URL first
+        const { data: imgData } = await this.client
+            .from('item_images')
+            .select('image_url')
+            .eq('id', imageId)
+            .single();
+
+        if (!imgData) { throw new Error('Image not found'); }
+
+        // 2. Clear other primaries for this item
+        await this.client
+            .from('item_images')
+            .update({ is_primary: false })
+            .eq('item_id', itemId)
+            .eq('user_id', userId);
+
+        // 3. Set new primary
+        await this.client
+            .from('item_images')
+            .update({ is_primary: true })
+            .eq('id', imageId)
+            .eq('user_id', userId);
+
+        // 4. Sync to main items table
+        await this.updateItem(itemId, { imageUrl: imgData.image_url });
+    }
+
+    /**
+     * Reorder images
+     */
+    async reorderImages(imageIds: string[]): Promise<void> {
+        const userId = await this.getCurrentUserId();
+
+        // Perform parallel updates for sort order
+        const updates = imageIds.map((id, index) =>
+            this.client
+                .from('item_images')
+                .update({ sort_order: index })
+                .eq('id', id)
+                .eq('user_id', userId)
+        );
+
+        const results = await Promise.all(updates);
+        const error = results.find(r => r.error);
+        if (error) {
+            this.handleError(error.error, 'WardrobeService.reorderImages');
         }
     }
 

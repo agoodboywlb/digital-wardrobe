@@ -1,10 +1,10 @@
-# Digital Wardrobe - AI Service
+# digital-wardrobe - AI Service
 
 > AI-powered outfit recommendation engine using Google Gemini 1.5 Flash.
 
 ## Overview
 
-The AI Service is a FastAPI-based microservice that provides intelligent outfit recommendations based on a user's wardrobe, current weather conditions, and desired "vibe".
+The digital-wardrobe AI Service is a FastAPI-based microservice that provides intelligent outfit recommendations based on a user's wardrobe, current weather conditions, and desired "vibe".
 
 ### Core Features
 - **Intelligent Recommendations**: Uses LLM to select cohesive outfits.
@@ -21,7 +21,7 @@ The AI Service is a FastAPI-based microservice that provides intelligent outfit 
 
 ## Project Structure
 ```text
-ai_service/
+app/
 ├── api/          # Web layer (Routes, Handlers)
 ├── core/         # Orchestration (Config, Logging)
 ├── models/       # Data models (Pydantic schemas)
@@ -32,20 +32,12 @@ ai_service/
 ## Setup & Installation
 
 ### Prerequisites
-- Python 3.10+
+- Python 3.14
 - Google Gemini API Key
 
 ### 1. Environment Setup
 ```bash
-# Create virtual environment
-python3 -m venv venv
-
-# Activate virtual environment
-source venv/bin/activate
-
-# Install dependencies
-pip install -e .
-pip install -e ".[dev]"
+source wardrobe-backend/ai-service/venv/bin/activate && python wardrobe-backend/ai-service/main.py
 ```
 
 ### 2. Configuration

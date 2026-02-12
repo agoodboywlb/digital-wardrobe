@@ -2,27 +2,32 @@
 trigger: always_on
 ---
 
-# Digital Wardrobe 全局开发规范
+# digital-wardrobe 全局开发规范
 
-> Digital Wardrobe — 移动端优先的智能衣橱管理平台
+> digital-wardrobe — 移动端优先的智能衣橱管理平台
 > **交互语言: 简体中文**
 
 ## 项目架构总览
 
 ```text
-digital-wardrobe/
-├── digital-wardrobe/       # 前端 → 规范见 GEMINI.md
+digital-wardrobe/ (Root)
+├── wardrobe-front/         # 前端 → 规范见 .agent/rules/wardrobe-front-rules.md
 ├── wardrobe-backend/
-│   ├── ai-service/         # AI 服务 → 规范见 GEMINI.md
+│   ├── ai-service/         # AI 服务 → 规范见 .agent/rules/ai-service-rules.md
 │   └── java-service/       # Java 后端 (预留)
 └── openspec/               # 变更规范与工件管理
 ```
 
 | 子项目 | 语言 | 框架 | 质量工具 |
 | :--- | :--- | :--- | :--- |
-| `digital-wardrobe` | TypeScript 5.8 | React 19 + Vite 6 | ESLint, Vitest |
-| `ai-service` | Python 3.10+ | FastAPI | Ruff, MyPy, Pytest |
+| `wardrobe-front` | TypeScript 5.8 | React 19 + Vite 6 | ESLint, Vitest |
+| `ai-service` | Python 3.14 | FastAPI | Ruff, MyPy, Pytest |
 | `java-service` | Java 17/21 | Spring Boot | — |
+
+## 工作流与版本控制
+
+1. **Git 规范**: 遵循 [Git Workflow](./git-workflow.md) (Conventional Commits)。
+2. **变更管理**: 核心逻辑变更遵循 [OpenSpec](../openspec/) 流程，确保有据可查。
 
 ## 通用架构原则
 

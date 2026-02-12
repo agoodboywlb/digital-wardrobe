@@ -3,13 +3,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 
 // import { MOCK_ITEMS } from '@/utils/constants'; // REMOVED
+import ImageGallery from '@/components/common/ImageGallery';
 import { wardrobeService } from '@/features/wardrobe/services/wardrobeService';
 import { ItemStatus } from '@/types/index';
 import { getCategoryLabel } from '@/utils/formatters';
 
 import type { ClothingItem } from '@/types/index';
 import type React from 'react';
-import OptimizedImage from '@/components/common/OptimizedImage';
 
 const ItemDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -160,13 +160,13 @@ const ItemDetailPage: React.FC = () => {
       </header>
 
       <main className="flex-1 max-w-md mx-auto w-full pb-44">
-        {/* Image */}
-        <div className="p-4">
-          <div className="relative w-full aspect-square overflow-hidden rounded-xl bg-white dark:bg-white/5 shadow-sm">
-            <OptimizedImage
-              src={item.imageUrl}
-              alt={item.name}
-              className="w-full h-full object-cover"
+        {/* Image Gallery */}
+        <div className="p-4 pt-2">
+          <div className="relative w-full aspect-square overflow-hidden rounded-3xl bg-white dark:bg-white/5 shadow-premium">
+            <ImageGallery
+              images={item.images}
+              mainImageUrl={item.imageUrl}
+              name={item.name}
             />
           </div>
         </div>

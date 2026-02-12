@@ -1,4 +1,4 @@
-# Digital Wardrobe 项目开发规范
+# digital-wardrobe 项目开发规范
 
 > **版本**: 1.0.0  
 > **最后更新**: 2026-02-12  
@@ -25,7 +25,7 @@ digital-wardrobe/
 │   ├── rules/                 # 详细开发规则
 │   └── skills/                # 常用技能脚本
 ├── docs/                      # 全局项目文档
-├── wardrobe-front/            # 前端项目 (Digital Wardrobe)
+├── wardrobe-front/            # 前端项目 (digital-wardrobe)
 ├── wardrobe-backend/
 │   ├── ai-service/            # AI 服务 (Python)
 │   └── java-service/          # Java 服务 (Spring Boot)

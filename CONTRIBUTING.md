@@ -1,6 +1,6 @@
 # 贡献指南
 
-感谢你考虑为 Digital Wardrobe 项目做出贡献! 🎉
+感谢你考虑为 digital-wardrobe 项目做出贡献! 🎉
 
 ## 行为准则
 

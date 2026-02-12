@@ -1,6 +1,7 @@
 import { BaseService } from '@/lib/baseService';
-import type { WeatherData } from '../types';
 import { generateQWeatherToken } from '@/utils/qweatherJwt';
+
+import type { WeatherData } from '../types';
 
 const CACHE_KEY = 'wardrobe_weather_cache';
 const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
@@ -88,7 +89,7 @@ export class WeatherService extends BaseService {
             // 如果在 catch 中,且还没试过公网,再试一次
             if (host !== 'geoapi.qweather.com') {
                 const output = await this.fetchPublicGeo(city, token);
-                if (output) return output;
+                if (output) {return output;}
             }
         }
 

@@ -94,7 +94,7 @@ const LoginPage: React.FC = () => {
             <div className="w-full max-w-md bg-surface-light dark:bg-surface-dark p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800">
                 <div className="flex justify-center mb-6">
                     <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-sm">
-                        <img src="/logo.png" alt="Digital Wardrobe Logo" className="w-full h-full object-cover" />
+                        <img src="/logo.png" alt="digital-wardrobe Logo" className="w-full h-full object-cover" />
                     </div>
                 </div>
                 <h1 className="text-2xl font-bold mb-6 text-center text-text-main dark:text-text-main-dark">

@@ -1,6 +1,7 @@
-import type { ClothingItem } from '@/types/index';
 import { Category } from '@/types/index';
+
 import type { WeatherData, RecommendationRule, RecommendationResult } from '../types';
+import type { ClothingItem } from '@/types/index';
 
 export const generateRecommendation = (
     items: ClothingItem[],
@@ -32,7 +33,7 @@ export const generateRecommendation = (
         const pool = items.filter((i) => i.category === cat && i.status === 'in_wardrobe');
         if (pool.length > 0) {
             const random = pool[Math.floor(Math.random() * pool.length)];
-            if (random) selectedItems.push(random);
+            if (random) {selectedItems.push(random);}
         }
     });
 
@@ -42,7 +43,7 @@ export const generateRecommendation = (
             const pool = items.filter((i) => i.category === cat && i.status === 'in_wardrobe');
             if (pool.length > 0) {
                 const random = pool[Math.floor(Math.random() * pool.length)];
-                if (random) selectedItems.push(random);
+                if (random) {selectedItems.push(random);}
             }
         });
     }

@@ -20,6 +20,16 @@ export enum ItemStatus {
   DryCleaning = 'dry_cleaning'
 }
 
+export interface ItemImage {
+  id: string;
+  itemId: string;
+  imageUrl: string;
+  label?: string;
+  sortOrder: number;
+  isPrimary: boolean;
+  createdAt: string;
+}
+
 export interface ClothingItem {
   id: string;
   name: string;
@@ -37,6 +47,7 @@ export interface ClothingItem {
   cpw?: number; // Cost Per Wear
   wearCount?: number;
   season?: Season | string;
+  images?: ItemImage[];
 }
 
 export interface Outfit {

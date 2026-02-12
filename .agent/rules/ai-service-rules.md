@@ -6,7 +6,7 @@ description: when developing AI service or backend python project
 # AI Service Project Rules
 
 > Project Type: AI-driven Outfit Recommendation Service
-> Tech Stack: Python 3.10+ / FastAPI / Google GenAI (Gemini 3 Flash)
+> Tech Stack: Python 3.14 / FastAPI / Google GenAI (Gemini 3 Flash)
 
 ---
 
@@ -23,7 +23,7 @@ description: when developing AI service or backend python project
 ## Core Directory Structure
 
 ```text
-ai_service/
+app/
 ├── api/          # Routes, HTTP status conversion
 ├── core/         # Config (Settings), Logging
 ├── models/       # Pydantic Models (DTO)

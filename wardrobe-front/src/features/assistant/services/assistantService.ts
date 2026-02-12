@@ -1,7 +1,9 @@
-import { BaseService } from '@/lib/baseService';
 import { wardrobeService } from '@/features/wardrobe/services/wardrobeService';
+import { BaseService } from '@/lib/baseService';
+
 import { weatherService } from './weatherService';
 import { generateRecommendation } from '../utils/generator';
+
 import type {
     RecommendationResult,
     AIServiceRequest,
@@ -75,7 +77,7 @@ export class AssistantService extends BaseService {
         // Transform AI response back to frontend format
         const selectedItems = items.filter(item => {
             const matched = aiResponse.item_ids.includes(item.id);
-            if (matched) console.log(`✅ 匹配到单品: ${item.name} (${item.id})`);
+            if (matched) {console.log(`✅ 匹配到单品: ${item.name} (${item.id})`);}
             return matched;
         });
 

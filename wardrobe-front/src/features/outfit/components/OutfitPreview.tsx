@@ -1,4 +1,5 @@
 import OptimizedImage from '@/components/common/OptimizedImage';
+
 import type { Outfit } from '../../../types';
 
 interface OutfitPreviewProps {

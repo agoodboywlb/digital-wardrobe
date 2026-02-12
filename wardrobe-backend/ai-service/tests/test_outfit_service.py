@@ -1,5 +1,5 @@
-from ai_service.models.outfit import ClothingItem
-from ai_service.services.outfit_service import OutfitService
+from app.models.outfit import ClothingItem
+from app.services.outfit_service import OutfitService
 
 
 def test_map_llm_output_to_ids() -> None:

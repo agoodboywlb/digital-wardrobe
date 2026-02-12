@@ -1,4 +1,4 @@
--- Digital Wardrobe - Full Schema Initialization
+-- digital-wardrobe - Full Schema Initialization
 -- Version: 1.0.0
 
 -- 1. Create Enums
