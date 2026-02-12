@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: when working in  wardrobe-front coding
+description: when writing TypeScript code, defining types, or fixing type errors in wardrobe-front
 ---
 
 # TypeScript Best Practices

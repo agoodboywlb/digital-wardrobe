@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: when working wardrobe-front coding
+description: when checking naming conventions, code formatting, or comment standards in wardrobe-front
 ---
 
 # Coding Style Guidelines

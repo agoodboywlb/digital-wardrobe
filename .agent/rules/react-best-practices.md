@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: when working wardrobe-front React coding
+description: when working on React components, hooks, state management, or performance in wardrobe-front
 ---
 
 # React Best Practices

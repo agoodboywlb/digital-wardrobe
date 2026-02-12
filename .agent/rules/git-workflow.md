@@ -1,5 +1,6 @@
 ---
-trigger: manual
+trigger: model_decision
+description: when committing code, handling branches, creating pull requests, or following git workflow
 ---
 
 # Git Workflow

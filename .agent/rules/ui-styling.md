@@ -1,6 +1,6 @@
 ---
-trigger: manual
-description: when wo
+trigger: model_decision
+description: when working wardrobe-front styling or UI coding
 ---
 
 # UI & Styling Guidelines

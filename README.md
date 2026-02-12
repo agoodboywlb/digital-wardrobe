@@ -65,7 +65,7 @@
 
 ```bash
 git clone https://github.com/yourusername/digital-wardrobe.git
-cd digital-wardrobe
+cd digital-wardrobe/wardrobe-front
 ```
 
 2. **安装依赖**
@@ -78,7 +78,7 @@ pnpm install
 
 3. **配置环境变量**
 
-复制 `.env.local.example` 到 `.env.local` 并填入你的配置:
+进入 `wardrobe-front` 目录，复制 `.env.local.example` 到 `.env.local` 并填入你的配置:
 
 ```bash
 cp .env.local.example .env.local
@@ -108,32 +108,22 @@ npm run dev
 ## 📁 项目结构
 
 ```
-digital-wardrobe/
+jj-project/
 ├── .agent/                    # AI Agent 配置
-├── ../docs/                   # 全局项目文档
-├── src/                       # 源代码 (待重构为标准结构)
-│   ├── components/            # 通用组件
-│   ├── pages/                 # 页面组件
-│   ├── services/              # 服务层
-│   ├── lib/                   # 第三方库配置
-│   ├── types/                 # 类型定义
-│   ├── utils/                 # 工具函数
-│   ├── App.tsx                # 应用入口
-│   └── main.tsx               # 主入口
-├── tests/                     # 测试文件
-│   └── setup.ts               # 测试环境配置
-├── public/                    # 静态资源
-├── .eslintrc.cjs              # ESLint 配置
-├── .prettierrc                # Prettier 配置
-├── tsconfig.json              # TypeScript 配置
-├── vite.config.ts             # Vite 配置
-├── vitest.config.ts           # Vitest 配置
-└── package.json               # 项目配置
+├── docs/                      # 全局项目文档
+├── wardrobe-front/            # 前端项目 (Digital Wardrobe)
+│   ├── src/                   # 源代码
+│   ├── tests/                 # 测试文件
+│   └── ...
+├── wardrobe-backend/          # 后端服务
+│   ├── ai-service/            # AI 服务
+│   └── java-service/          # Java 服务
+└── openspec/                  # 规范文件
 ```
 
 ## 📚 文档
 
-- **[产品需求与迭代规划 (Product Roadmap)](../docs/PRODUCT_ROADMAP.md)**
+- **[产品需求与迭代规划 (Product Roadmap)](docs/PRODUCT_ROADMAP.md)**
   - 项目愿景与目标
   - 当前功能与待办事项 (Backlog)
   - 迭代路线图 (Runway)
@@ -162,7 +152,7 @@ npm run test:coverage    # 生成测试覆盖率报告
 
 ## 🎯 开发规范
 
-本项目遵循严格的开发规范,详见 [`docs/PROJECT_STANDARDS.md`](../docs/PROJECT_STANDARDS.md)
+本项目遵循严格的开发规范,详见 [`docs/PROJECT_STANDARDS.md`](docs/PROJECT_STANDARDS.md)
 
 ### 核心原则
 
@@ -210,7 +200,7 @@ git commit -m "fix(outfit): resolve image upload error"
 
 本项目使用和风天气的 JWT 认证方式,相比 API Key 更加安全。详细配置步骤请参考:
 
-📖 **[和风天气 JWT 认证配置指南](../docs/QWEATHER_JWT_SETUP.md)**
+📖 **[和风天气 JWT 认证配置指南](docs/QWEATHER_JWT_SETUP.md)**
 
 快速配置:
 1. 在 [和风天气控制台](https://console.qweather.com/project) 获取凭据 ID 和项目 ID
