@@ -110,7 +110,8 @@ npm run dev
 ```
 digital-wardrobe/
 ├── .agent/                    # AI Agent 配置
-│   └── PROJECT_STANDARDS.md  # 项目开发规范
+├── docs/                      # 项目文档
+│   └── PROJECT_STANDARDS.md   # 项目开发规范
 ├── src/                       # 源代码 (待重构为标准结构)
 │   ├── components/            # 通用组件
 │   ├── pages/                 # 页面组件
@@ -162,7 +163,7 @@ npm run test:coverage    # 生成测试覆盖率报告
 
 ## 🎯 开发规范
 
-本项目遵循严格的开发规范,详见 [`.agent/PROJECT_STANDARDS.md`](.agent/PROJECT_STANDARDS.md)
+本项目遵循严格的开发规范,详见 [`docs/PROJECT_STANDARDS.md`](docs/PROJECT_STANDARDS.md)
 
 ### 核心原则
 

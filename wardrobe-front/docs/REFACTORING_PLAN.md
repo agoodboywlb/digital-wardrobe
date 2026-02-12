@@ -21,7 +21,7 @@
 **时间**: Day 1  
 **状态**: ✅ 完成
 
-- [x] 创建项目规范文档 (`.agent/PROJECT_STANDARDS.md`)
+- [x] 创建项目规范文档 (`docs/PROJECT_STANDARDS.md`)
 - [x] 配置 ESLint (`.eslintrc.cjs`)
 - [x] 配置 Prettier (`.prettierrc`)
 - [x] 配置 EditorConfig (`.editorconfig`)

@@ -1,7 +1,7 @@
 # 重构进度总结
 
 ## ✅ Phase 1: 基础设施 (2026-02-09 完成)
-- [x] 创建 `.agent/PROJECT_STANDARDS.md` 规范文档
+- [x] 创建 `docs/PROJECT_STANDARDS.md` 规范文档
 - [x] 配置 `tsconfig.json` (Strict Mode)
 - [x] 配置 ESLint + Prettier + EditorConfig
 - [x] 设置 Git Hooks (husky + lint-staged)

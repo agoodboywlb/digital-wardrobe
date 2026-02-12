@@ -1231,7 +1231,7 @@ MAJOR.MINOR.PATCH
 
 - **项目维护者**: [Your Name]
 - **问题反馈**: GitHub Issues
-- **文档更新**: 提交 PR 到 `.agent/PROJECT_STANDARDS.md`
+- **文档更新**: 提交 PR 到 `docs/PROJECT_STANDARDS.md`
 
 ---
 

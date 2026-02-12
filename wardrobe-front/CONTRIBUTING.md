@@ -66,7 +66,7 @@ git checkout -b fix/your-bug-fix
 
 5. **进行开发**
 
-- 遵循项目的代码规范 (见 `.agent/PROJECT_STANDARDS.md`)
+- 遵循项目的代码规范 (见 `docs/PROJECT_STANDARDS.md`)
 - 编写清晰的代码和注释
 - 添加必要的测试
 
@@ -216,7 +216,7 @@ Closes #[issue number]
 
 ## 项目结构
 
-详见 [`.agent/PROJECT_STANDARDS.md`](.agent/PROJECT_STANDARDS.md)
+详见 [`docs/PROJECT_STANDARDS.md`](docs/PROJECT_STANDARDS.md)
 
 ## 开发环境设置
 
@@ -247,7 +247,7 @@ Closes #[issue number]
 如果你有任何问题:
 
 1. 查看 [README.md](README.md)
-2. 查看 [项目规范](.agent/PROJECT_STANDARDS.md)
+2. 查看 [项目规范](docs/PROJECT_STANDARDS.md)
 3. 搜索现有的 Issues
 4. 创建新的 Issue 提问
 
