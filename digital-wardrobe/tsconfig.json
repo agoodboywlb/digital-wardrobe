@@ -1,0 +1,102 @@
+{
+  "compilerOptions": {
+    /* Language and Environment */
+    "target": "ES2022",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "jsx": "react-jsx",
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    /* Modules */
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    /* Type Checking */
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    /* Emit */
+    "noEmit": true,
+    "sourceMap": true,
+    "removeComments": false,
+    "importHelpers": true,
+    /* Interop Constraints */
+    "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    /* Skip Lib Check */
+    "skipLibCheck": true,
+    /* Advanced */
+    "allowJs": true,
+    /* Path Mapping */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@/components/*": [
+        "./src/components/*"
+      ],
+      "@/features/*": [
+        "./src/features/*"
+      ],
+      "@/hooks/*": [
+        "./src/hooks/*"
+      ],
+      "@/lib/*": [
+        "./src/lib/*"
+      ],
+      "@/pages/*": [
+        "./src/pages/*"
+      ],
+      "@/services/*": [
+        "./src/services/*"
+      ],
+      "@/types/*": [
+        "./src/types/*"
+      ],
+      "@/utils/*": [
+        "./src/utils/*"
+      ]
+    },
+    /* Type Definitions */
+    "types": [
+      "node",
+      "vite/client",
+      "@testing-library/jest-dom"
+    ]
+  },
+  "include": [
+    "src",
+    "tests"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "coverage"
+  ],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
+}

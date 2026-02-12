@@ -1,0 +1,424 @@
+import { ChevronLeft, Camera, Image as ImageIcon, CircleCheck, ChevronDown, Loader2, Trash2, Tag, Calendar, DollarSign, Info, RefreshCcw, Plus, Scissors } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+
+import { wardrobeService } from '@/features/wardrobe/services/wardrobeService';
+import { ItemStatus } from '@/types/index';
+import ImageEditor from '@/components/common/ImageEditor';
+
+import type { ClothingItem, Category } from '@/types/index';
+import type React from 'react';
+
+const EditItemPage: React.FC = () => {
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const [item, setItem] = useState<ClothingItem | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [showMore, setShowMore] = useState(false);
+
+    // Form fields
+    const [name, setName] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('');
+    const [brand, setBrand] = useState('');
+    const [size, setSize] = useState('');
+    const [material, setMaterial] = useState('');
+    const [price, setPrice] = useState<string>('');
+    const [purchaseDate, setPurchaseDate] = useState('');
+    const [lastWorn, setLastWorn] = useState('');
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string>('');
+    const [selectedSeason, setSelectedSeason] = useState<string>('');
+    const [tags, setTags] = useState<string>('');
+    const [status, setStatus] = useState<ItemStatus>(ItemStatus.InWardrobe);
+    const [isEditingImage, setIsEditingImage] = useState(false);
+    const [originalImageUrl, setOriginalImageUrl] = useState<string>('');
+
+    useEffect(() => {
+        const loadItem = async () => {
+            if (!id) { return; }
+            setLoading(true);
+            try {
+                const data = await wardrobeService.fetchItem(id);
+                if (data) {
+                    setItem(data);
+                    setName(data.name);
+                    setSelectedCategory(data.category);
+                    setBrand(data.brand || '');
+                    setSize(data.size || '');
+                    setMaterial(data.material || '');
+                    setPrice(data.price?.toString() || '');
+                    setPurchaseDate(data.purchaseDate || '');
+                    setLastWorn(data.lastWorn || '');
+                    setPreviewUrl(data.imageUrl);
+                    setStatus(data.status);
+                    if (data.season) {
+                        setSelectedSeason(data.season);
+                    }
+                    if (data.tags) {
+                        setTags(data.tags.filter(t => !t.startsWith('show:')).join('，'));
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to load item", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        void loadItem();
+    }, [id]);
+
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            const url = URL.createObjectURL(file);
+            setOriginalImageUrl(url);
+            setPreviewUrl(url);
+            setImageFile(file);
+            setIsEditingImage(true);
+        }
+    };
+
+    const handleImageSave = (blob: Blob, preview: string) => {
+        // 转换为 webp 格式以大幅减小体积
+        const fileName = (imageFile?.name || 'item.jpg').replace(/\.[^/.]+$/, "") + ".webp";
+        const file = new File([blob], fileName, { type: 'image/webp' });
+        setImageFile(file);
+        setPreviewUrl(preview);
+        setIsEditingImage(false);
+    };
+
+    const handleStartEditCurrent = () => {
+        setOriginalImageUrl(previewUrl);
+        setIsEditingImage(true);
+    };
+
+    const handleSave = async () => {
+        if (!id || !name || !selectedCategory) {
+            alert('请填写名称和分类');
+            return;
+        }
+
+        setSaving(true);
+        try {
+            let imageUrl = previewUrl;
+            if (imageFile) {
+                imageUrl = await wardrobeService.uploadImage(imageFile);
+            }
+
+            await wardrobeService.updateItem(id, {
+                name,
+                category: selectedCategory as Category,
+                brand: brand || undefined,
+                size: size || undefined,
+                material: material || undefined,
+                price: price ? parseFloat(price) : undefined,
+                purchaseDate: purchaseDate || undefined,
+                lastWorn: lastWorn || undefined,
+                imageUrl,
+                status,
+                season: selectedSeason || undefined,
+                tags: [
+                    ...(item?.tags.filter(t => t.startsWith('show:')) || []),
+                    ...tags.split(/[,，]/).map(t => t.trim()).filter(t => t !== '')
+                ]
+            });
+
+            // Use replace: true to prevent back button from returning here
+            void navigate(`/item/${id}`, { replace: true });
+        } catch (error) {
+            console.error("Error updating item", error);
+            alert('保存失败，请重试');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!id) { return; }
+        if (window.confirm('确定要删除这件单品吗？此操作不可撤销。')) {
+            setSaving(true);
+            try {
+                await wardrobeService.deleteItem(id);
+                void navigate('/', { replace: true });
+            } catch (error) {
+                console.error("Error deleting item", error);
+                alert('删除失败');
+                setSaving(false);
+            }
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex h-screen items-center justify-center bg-background-light dark:bg-background-dark">
+                <Loader2 className="w-8 h-8 text-primary animate-spin" />
+            </div>
+        );
+    }
+
+    if (!item) { return null; }
+
+    return (
+        <div className="flex flex-col h-screen bg-background-light dark:bg-background-dark overflow-hidden">
+            {/* Header */}
+            <header className="flex items-center bg-white dark:bg-surface-dark px-4 h-14 justify-between sticky top-0 z-30 border-b border-gray-100 dark:border-gray-800">
+                <button onClick={() => { void navigate(-1); }} className="text-text-main dark:text-white flex size-10 items-center justify-start">
+                    <ChevronLeft className="w-6 h-6" />
+                </button>
+                <h2 className="text-text-main dark:text-white text-[17px] font-bold flex-1 text-center">编辑单品</h2>
+                <button onClick={() => { void handleDelete(); }} className="size-10 flex items-center justify-end text-red-500">
+                    <Trash2 className="w-5 h-5" />
+                </button>
+            </header>
+
+            <div className="flex-1 overflow-y-auto pb-32">
+                {/* Image Area */}
+                <div className="p-4">
+                    <div className="relative aspect-square w-full rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-200 dark:border-gray-700 shadow-sm">
+                        {previewUrl ? (
+                            <img src={previewUrl} alt="Preview" className="absolute inset-0 w-full h-full object-cover" />
+                        ) : (
+                            <ImageIcon className="w-12 h-12 text-gray-300" />
+                        )}
+                        {previewUrl && (
+                            <div className="absolute top-4 right-4 z-10 flex gap-2">
+                                <button
+                                    type="button"
+                                    onClick={handleStartEditCurrent}
+                                    className="size-12 rounded-full bg-white/90 dark:bg-black/60 shadow-lg backdrop-blur-md flex items-center justify-center text-primary border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform"
+                                >
+                                    <Scissors className="w-6 h-6" />
+                                </button>
+                            </div>
+                        )}
+                        <div className="absolute bottom-4 right-4 flex gap-2">
+                            <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="size-12 rounded-full bg-white/90 dark:bg-black/60 shadow-lg backdrop-blur-md flex items-center justify-center text-primary border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform">
+                                <Camera className="w-6 h-6" />
+                            </button>
+                        </div>
+                        <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageSelect} />
+                    </div>
+                </div>
+
+                {isEditingImage && (
+                    <ImageEditor
+                        image={originalImageUrl}
+                        onSave={handleImageSave}
+                        onCancel={() => setIsEditingImage(false)}
+                    />
+                )}
+
+                {/* Form Fields */}
+                <div className="px-4 space-y-6">
+                    {/* Basic Info */}
+                    <section className="space-y-4">
+                        <div>
+                            <label htmlFor="item-name" className="flex items-center gap-2 text-text-secondary text-xs font-bold mb-2 uppercase tracking-wider px-1">
+                                <Info className="w-3.5 h-3.5" /> 基础信息
+                            </label>
+                            <input
+                                id="item-name"
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                className="block w-full rounded-xl border-none ring-1 ring-gray-200 dark:ring-gray-800 bg-white dark:bg-gray-900/50 p-4 outline-none focus:ring-2 focus:ring-primary transition-all text-base font-medium"
+                                placeholder="单品名称"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label htmlFor="item-category" className="block text-text-secondary text-[10px] font-bold mb-1.5 uppercase ml-1">分类</label>
+                                <div className="relative">
+                                    <select
+                                        id="item-category"
+                                        value={selectedCategory}
+                                        onChange={(e) => setSelectedCategory(e.target.value)}
+                                        className="block w-full rounded-xl border-none ring-1 ring-gray-200 dark:ring-gray-800 bg-white dark:bg-gray-900/50 p-3.5 appearance-none outline-none focus:ring-2 focus:ring-primary text-sm font-semibold"
+                                    >
+                                        <option value="tops">上装</option>
+                                        <option value="bottoms">裤装</option>
+                                        <option value="outerwear">外套</option>
+                                        <option value="footwear">鞋履</option>
+                                        <option value="accessories">配饰</option>
+                                    </select>
+                                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                </div>
+                            </div>
+                            <div>
+                                <label htmlFor="item-season" className="block text-text-secondary text-[10px] font-bold mb-1.5 uppercase ml-1">季节</label>
+                                <div className="relative">
+                                    <select
+                                        id="item-season"
+                                        value={selectedSeason}
+                                        onChange={(e) => setSelectedSeason(e.target.value)}
+                                        className="block w-full rounded-xl border-none ring-1 ring-gray-200 dark:ring-gray-800 bg-white dark:bg-gray-900/50 p-3.5 appearance-none outline-none focus:ring-2 focus:ring-primary text-sm font-semibold"
+                                    >
+                                        <option value="">未设置</option>
+                                        <option value="spring">春季</option>
+                                        <option value="summer">夏季</option>
+                                        <option value="autumn">秋季</option>
+                                        <option value="winter">冬季</option>
+                                    </select>
+                                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Detailed Attributes */}
+                    <section className="space-y-4">
+                        <label htmlFor="item-brand" className="flex items-center gap-2 text-text-secondary text-xs font-bold mb-2 uppercase tracking-wider px-1">
+                            <Tag className="w-3.5 h-3.5" /> 属性详情
+                        </label>
+                        <div className="bg-white dark:bg-white/5 rounded-2xl ring-1 ring-gray-100 dark:ring-gray-800 overflow-hidden">
+                            <div className="flex items-center border-b border-gray-50 dark:border-gray-800">
+                                <span className="w-20 pl-4 text-xs font-bold text-text-secondary">品牌</span>
+                                <input
+                                    id="item-brand"
+                                    type="text"
+                                    value={brand}
+                                    onChange={(e) => setBrand(e.target.value)}
+                                    className="flex-1 p-4 bg-transparent outline-none text-sm font-medium"
+                                    placeholder="输入品牌"
+                                />
+                            </div>
+                            <div className="flex items-center border-b border-gray-50 dark:border-gray-800">
+                                <span className="w-20 pl-4 text-xs font-bold text-text-secondary">尺码</span>
+                                <input
+                                    id="item-size"
+                                    type="text"
+                                    value={size}
+                                    onChange={(e) => setSize(e.target.value)}
+                                    className="flex-1 p-4 bg-transparent outline-none text-sm font-medium"
+                                    placeholder="输入尺码"
+                                />
+                            </div>
+                            <div className="flex items-center">
+                                <span className="w-20 pl-4 text-xs font-bold text-text-secondary">材质</span>
+                                <input
+                                    id="item-material"
+                                    type="text"
+                                    value={material}
+                                    onChange={(e) => setMaterial(e.target.value)}
+                                    className="flex-1 p-4 bg-transparent outline-none text-sm font-medium"
+                                    placeholder="输入材质"
+                                />
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Expandable Section: More Details */}
+                    <section className="space-y-4">
+                        <button
+                            type="button"
+                            onClick={() => setShowMore(!showMore)}
+                            className="w-full flex items-center justify-between py-2 px-1 group"
+                        >
+                            <span className="flex items-center gap-2 text-text-secondary text-xs font-bold uppercase tracking-wider cursor-pointer group-hover:text-primary transition-colors">
+                                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showMore ? 'rotate-180' : ''}`} /> 更多细节 (价格、日期等)
+                            </span>
+                            {!showMore && <span className="text-[10px] text-primary font-bold bg-primary/10 px-2 py-0.5 rounded-full">扩展</span>}
+                        </button>
+
+                        <div className={`overflow-hidden transition-all duration-500 ease-in-out ${showMore ? 'max-h-[1000px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
+                            <div className="bg-white dark:bg-white/5 rounded-2xl ring-1 ring-gray-100 dark:ring-gray-800 space-y-0 shadow-sm mb-4">
+                                <div className="flex items-center border-b border-gray-50 dark:border-gray-800">
+                                    <div className="w-12 flex justify-center text-text-secondary">
+                                        <DollarSign className="w-4 h-4" />
+                                    </div>
+                                    <label htmlFor="item-price" className="text-[10px] font-bold text-gray-400 w-16">价格</label>
+                                    <input
+                                        id="item-price"
+                                        type="number"
+                                        value={price}
+                                        onChange={(e) => setPrice(e.target.value)}
+                                        className="flex-1 p-4 bg-transparent outline-none text-sm font-medium"
+                                        placeholder="0.00"
+                                    />
+                                </div>
+                                <div className="flex items-center border-b border-gray-50 dark:border-gray-800">
+                                    <div className="w-12 flex justify-center text-text-secondary">
+                                        <Calendar className="w-4 h-4" />
+                                    </div>
+                                    <label htmlFor="item-purchase-date" className="text-[10px] font-bold text-gray-400 w-16">购入日期</label>
+                                    <input
+                                        id="item-purchase-date"
+                                        type="date"
+                                        value={purchaseDate}
+                                        onChange={(e) => setPurchaseDate(e.target.value)}
+                                        className="flex-1 p-4 bg-transparent outline-none text-sm font-medium"
+                                    />
+                                </div>
+                                <div className="flex items-center shadow-sm">
+                                    <div className="w-12 flex justify-center text-text-secondary">
+                                        <RefreshCcw className="w-4 h-4" />
+                                    </div>
+                                    <label htmlFor="item-last-worn" className="text-[10px] font-bold text-gray-400 w-16">上次穿着</label>
+                                    <input
+                                        id="item-last-worn"
+                                        type="date"
+                                        value={lastWorn}
+                                        onChange={(e) => setLastWorn(e.target.value)}
+                                        className="flex-1 p-4 bg-transparent outline-none text-sm font-medium"
+                                    />
+                                </div>
+                                <div className="flex items-center shadow-sm">
+                                    <div className="w-12 flex justify-center text-text-secondary">
+                                        <Tag className="w-4 h-4" />
+                                    </div>
+                                    <label htmlFor="item-tags" className="text-[10px] font-bold text-gray-400 w-16">自定义标签</label>
+                                    <input
+                                        id="item-tags"
+                                        type="text"
+                                        value={tags}
+                                        onChange={(e) => setTags(e.target.value)}
+                                        className="flex-1 p-4 bg-transparent outline-none text-sm font-medium"
+                                        placeholder="用逗号分隔，如：通勤, 复古"
+                                    />
+                                </div>
+                            </div>
+                            <p className="text-[10px] text-gray-400 px-2 leading-relaxed">
+                                完善这些信息可以帮助我们为您提供更准确的衣橱统计，或者添加自定义分类标签。
+                            </p>
+                        </div>
+                    </section>
+
+                    {/* New Field Entry Point (Future) */}
+                    <div className="py-4 flex justify-center">
+                        <button type="button" className="flex items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-primary transition-colors py-2 px-4 rounded-full bg-gray-50 dark:bg-white/5 border border-dashed border-gray-200 dark:border-gray-800">
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>请求增加更多字段...</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Footer Actions */}
+            <footer className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] p-4 bg-white/90 dark:bg-background-dark/90 backdrop-blur-xl border-t border-gray-100 dark:border-gray-800 pb-8 z-40">
+                <button
+                    type="button"
+                    onClick={() => { void handleSave(); }}
+                    disabled={saving}
+                    className="w-full h-14 bg-primary text-slate-900 font-bold rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-70">
+                    {saving ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                        <>
+                            <span>完成更改</span>
+                            <CircleCheck className="w-5 h-5" />
+                        </>
+                    )}
+                </button>
+            </footer>
+        </div>
+    );
+};
+
+export default EditItemPage;

@@ -1,0 +1,7 @@
+{
+  "name": "Digital Wardrobe",
+  "description": "A smart wardrobe management application to track, organize, and plan your daily outfits with AI-powered insights.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

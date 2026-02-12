@@ -1,0 +1,19 @@
+node_modules
+dist
+build
+coverage
+*.log
+
+# 忽略配置文件本身
+.prettierrc
+.prettierrc.json
+.prettierrc.js
+
+# 忽略自动生成的文件
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# 忽略构建产物
+*.min.js
+*.min.css
