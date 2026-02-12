@@ -135,7 +135,7 @@ npm run lint     # ESLint 检查
 ## 详细规范
 
 完整的代码示例、样式规范、测试规范请参考：
-- [PROJECT_STANDARDS.md](docs/PROJECT_STANDARDS.md)
+- [PROJECT_STANDARDS.md](../docs/PROJECT_STANDARDS.md)
 - [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## 工作流

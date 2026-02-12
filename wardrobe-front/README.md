@@ -110,8 +110,7 @@ npm run dev
 ```
 digital-wardrobe/
 ├── .agent/                    # AI Agent 配置
-├── docs/                      # 项目文档
-│   └── PROJECT_STANDARDS.md   # 项目开发规范
+├── ../docs/                   # 全局项目文档
 ├── src/                       # 源代码 (待重构为标准结构)
 │   ├── components/            # 通用组件
 │   ├── pages/                 # 页面组件
@@ -134,7 +133,7 @@ digital-wardrobe/
 
 ## 📚 文档
 
-- **[产品需求与迭代规划 (Product Roadmap)](docs/PRODUCT_ROADMAP.md)**
+- **[产品需求与迭代规划 (Product Roadmap)](../docs/PRODUCT_ROADMAP.md)**
   - 项目愿景与目标
   - 当前功能与待办事项 (Backlog)
   - 迭代路线图 (Runway)
@@ -163,7 +162,7 @@ npm run test:coverage    # 生成测试覆盖率报告
 
 ## 🎯 开发规范
 
-本项目遵循严格的开发规范,详见 [`docs/PROJECT_STANDARDS.md`](docs/PROJECT_STANDARDS.md)
+本项目遵循严格的开发规范,详见 [`docs/PROJECT_STANDARDS.md`](../docs/PROJECT_STANDARDS.md)
 
 ### 核心原则
 
@@ -211,7 +210,7 @@ git commit -m "fix(outfit): resolve image upload error"
 
 本项目使用和风天气的 JWT 认证方式,相比 API Key 更加安全。详细配置步骤请参考:
 
-📖 **[和风天气 JWT 认证配置指南](docs/QWEATHER_JWT_SETUP.md)**
+📖 **[和风天气 JWT 认证配置指南](../docs/QWEATHER_JWT_SETUP.md)**
 
 快速配置:
 1. 在 [和风天气控制台](https://console.qweather.com/project) 获取凭据 ID 和项目 ID
