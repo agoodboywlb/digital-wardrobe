@@ -92,7 +92,7 @@
 
 ## 5. 清理与规范检查
 
-### Task 5.1: 运行工具链联调
+### Task 5.1: 运行工具链联调 [x]
 **Steps:**
 - 命令: `ruff check .`
 - 命令: `mypy .`
@@ -100,7 +100,7 @@
 - 修复所有检测到的规范问题。
 - `git commit -m "style: apply ruff and mypy fixes"`
 
-### Task 5.2: 删除旧文件
+### Task 5.2: 删除旧文件 [x]
 **Steps:**
 - 命令: `rm requirements.txt test3.py`
 - `git add . && git commit -m "cleanup: remove obsolete files"`
