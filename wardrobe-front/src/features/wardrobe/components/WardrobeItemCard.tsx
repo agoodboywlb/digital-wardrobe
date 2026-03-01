@@ -1,7 +1,8 @@
-import { Tag } from 'lucide-react';
+import { Tag as TagIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import OptimizedImage from '@/components/common/OptimizedImage';
+import { Tag } from '@/components/ui/Tag';
 import { ItemStatus } from '@/types/index';
 import { getCategoryLabel } from '@/utils/formatters';
 
@@ -43,35 +44,29 @@ const WardrobeItemCard: React.FC<WardrobeItemCardProps> = ({ item }) => {
                 <h3 className="text-sm font-bold text-text-main dark:text-white truncate leading-tight mb-2">{item.name}</h3>
                 <div className="flex flex-wrap gap-1.5 min-h-[1.5rem] content-start overflow-hidden">
                     {item.tags.includes('show:brand') && (
-                        <div className="flex items-center gap-1 bg-gray-100 dark:bg-white/10 px-1.5 py-1 rounded-md max-w-full">
-                            <Tag className="w-3 h-3 text-primary shrink-0 fill-current" />
-                            <span className="text-[10px] font-bold text-text-secondary truncate">{item.brand || '无品牌'}</span>
-                        </div>
+                        <Tag className="max-w-full">
+                            <TagIcon className="w-3 h-3 text-primary shrink-0 fill-current mr-1" />
+                            <span className="truncate">{item.brand || '无品牌'}</span>
+                        </Tag>
                     )}
 
                     {item.tags.includes('show:category') && (
-                        <div className="flex items-center gap-1 bg-gray-100 dark:bg-white/10 px-1.5 py-1 rounded-md">
-                            <span className="text-[10px] font-bold text-text-secondary">{getCategoryLabel(item.category)}</span>
-                        </div>
+                        <Tag>{getCategoryLabel(item.category)}</Tag>
                     )}
 
                     {item.tags.includes('show:size') && (
-                        <div className="flex items-center gap-1 bg-gray-100 dark:bg-white/10 px-1.5 py-1 rounded-md">
-                            <span className="text-[10px] font-bold text-text-secondary">{(item.size || '均码').split(' ')[0]}</span>
-                        </div>
+                        <Tag>{(item.size || '均码').split(' ')[0]}</Tag>
                     )}
 
                     {item.tags.includes('show:material') && (
-                        <div className="flex items-center gap-1 bg-gray-100 dark:bg-white/10 px-1.5 py-1 rounded-md">
-                            <span className="text-[10px] font-bold text-text-secondary truncate">{item.material || '未知材质'}</span>
-                        </div>
+                        <Tag className="truncate">{item.material || '未知材质'}</Tag>
                     )}
 
                     {/* Show other user-defined tags that are not technical 'show:' tags */}
                     {item.tags.filter(t => !t.startsWith('show:')).map((tag, i) => (
-                        <div key={i} className="flex items-center gap-1 bg-primary/10 px-1.5 py-1 rounded-md">
-                            <span className="text-[10px] font-bold text-primary">{tag}</span>
-                        </div>
+                        <Tag key={i} type="custom" className="bg-primary/20 text-primary">
+                            {tag}
+                        </Tag>
                     ))}
                 </div>
             </div>

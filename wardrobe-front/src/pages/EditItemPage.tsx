@@ -1,7 +1,9 @@
-import { ChevronLeft, CircleCheck, ChevronDown, Loader2, Trash2, Tag, Calendar, DollarSign, Info, RefreshCcw } from 'lucide-react';
+import { ChevronLeft, CircleCheck, ChevronDown, Loader2, Trash2, Tag as TagIcon, Calendar, DollarSign, Info, RefreshCcw } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { Skeleton } from '@/components/ui/Skeleton';
+import { Tag } from '@/components/ui/Tag';
 import MultiImageUploader from '@/components/common/MultiImageUploader';
 import { wardrobeService } from '@/features/wardrobe/services/wardrobeService';
 import { ItemStatus } from '@/types/index';
@@ -176,8 +178,36 @@ const EditItemPage: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="flex h-screen items-center justify-center bg-background-light dark:bg-background-dark">
-                <Loader2 className="w-8 h-8 text-primary animate-spin" />
+            <div className="flex flex-col h-screen bg-background-light dark:bg-background-dark overflow-hidden">
+                <header className="flex items-center bg-white dark:bg-surface-dark px-4 h-14 justify-between sticky top-0 z-30 border-b border-gray-100 dark:border-gray-800">
+                    <div className="w-10" />
+                    <Skeleton className="h-6 w-24" />
+                    <div className="w-10" />
+                </header>
+                <div className="flex-1 overflow-y-auto p-4 space-y-6">
+                    <div>
+                        <Skeleton className="h-4 w-32 mb-3" />
+                        <div className="grid grid-cols-3 gap-2">
+                            {Array.from({ length: 3 }).map((_, i) => (
+                                <Skeleton key={i} className="aspect-square rounded-xl" />
+                            ))}
+                        </div>
+                    </div>
+                    <div className="space-y-4">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-14 w-full rounded-xl" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Skeleton className="h-3 w-12" />
+                            <Skeleton className="h-12 w-full rounded-xl" />
+                        </div>
+                        <div className="space-y-2">
+                            <Skeleton className="h-3 w-12" />
+                            <Skeleton className="h-12 w-full rounded-xl" />
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -359,17 +389,24 @@ const EditItemPage: React.FC = () => {
                                 </div>
                                 <div className="flex items-center shadow-sm">
                                     <div className="w-12 flex justify-center text-text-secondary">
-                                        <Tag className="w-4 h-4" />
+                                        <TagIcon className="w-4 h-4" />
                                     </div>
                                     <label htmlFor="item-tags" className="text-[10px] font-bold text-gray-400 w-16">自定义标签</label>
-                                    <input
-                                        id="item-tags"
-                                        type="text"
-                                        value={tags}
-                                        onChange={(e) => setTags(e.target.value)}
-                                        className="flex-1 p-4 bg-transparent outline-none text-sm font-medium"
-                                        placeholder="用逗号分隔，如：通勤, 复古"
-                                    />
+                                    <div className="flex-1 p-4 flex flex-wrap gap-2">
+                                        {tags.split(/[,，]/).map(t => t.trim()).filter(t => t !== '').map((tag, i) => (
+                                            <Tag key={i} type="custom" className="bg-primary/20 text-primary">
+                                                {tag}
+                                            </Tag>
+                                        ))}
+                                        <input
+                                            id="item-tags"
+                                            type="text"
+                                            value={tags}
+                                            onChange={(e) => setTags(e.target.value)}
+                                            className="flex-1 bg-transparent outline-none text-sm font-medium min-w-[100px]"
+                                            placeholder="用逗号分隔，如：通勤, 复古"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>

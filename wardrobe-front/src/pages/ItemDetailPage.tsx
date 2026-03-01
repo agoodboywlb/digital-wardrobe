@@ -1,8 +1,10 @@
-import { ChevronLeft, Heart, Pencil, Tag, Shirt, ChevronRight, CircleCheck, Droplets, Utensils, Loader2, RefreshCcw, DollarSign, Calendar, Trash2 } from 'lucide-react';
+import { ChevronLeft, Heart, Pencil, Tag as TagIcon, Shirt, ChevronRight, CircleCheck, Droplets, Utensils, Loader2, RefreshCcw, DollarSign, Calendar, Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 
 // import { MOCK_ITEMS } from '@/utils/constants'; // REMOVED
+import { Skeleton } from '@/components/ui/Skeleton';
+import { Tag } from '@/components/ui/Tag';
 import ImageGallery from '@/components/common/ImageGallery';
 import ImagePreview from '@/components/common/ImagePreview';
 import { wardrobeService } from '@/features/wardrobe/services/wardrobeService';
@@ -110,8 +112,34 @@ const ItemDetailPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background-light dark:bg-background-dark">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      <div className="bg-background-light dark:bg-background-dark min-h-screen flex flex-col">
+        <header className="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800">
+          <div className="flex items-center justify-between px-2 h-14">
+            <div className="w-20 h-8" />
+            <Skeleton className="h-6 w-24" />
+            <div className="w-20 h-8" />
+          </div>
+        </header>
+        <main className="flex-1 max-w-md mx-auto w-full pb-44">
+          <div className="p-4 pt-2">
+            <Skeleton className="w-full aspect-square rounded-3xl" />
+          </div>
+          <div className="px-5 mb-8">
+            <Skeleton className="h-9 w-3/4 mb-2" />
+            <Skeleton className="h-6 w-1/2" />
+          </div>
+          <div className="px-5 space-y-6">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between py-4 border-b border-gray-100 dark:border-gray-800">
+                <div className="flex items-center">
+                  <Skeleton className="w-6 h-6 mr-4 rounded-md" />
+                  <Skeleton className="h-4 w-16" />
+                </div>
+                <Skeleton className="h-4 w-24" />
+              </div>
+            ))}
+          </div>
+        </main>
       </div>
     );
   }
@@ -196,10 +224,10 @@ const ItemDetailPage: React.FC = () => {
         {/* List Details */}
         <div className="px-5 space-y-2">
           {[
-            { label: '品牌', value: item.brand || '无品牌', icon: Tag, key: 'brand' },
+            { label: '品牌', value: item.brand || '无品牌', icon: TagIcon, key: 'brand' },
             { label: '分类', value: item.category, icon: Shirt, key: 'category', isInteractable: true },
-            { label: '季节', value: item.season || '未设置', icon: Tag, key: 'season' },
-            { label: '尺码', value: item.size || '均码', icon: Tag, key: 'size' },
+            { label: '季节', value: item.season || '未设置', icon: TagIcon, key: 'season' },
+            { label: '尺码', value: item.size || '均码', icon: TagIcon, key: 'size' },
             { label: '材质', value: item.material || '未知材质', icon: Shirt, key: 'material' },
             {
               label: '价格',
@@ -222,9 +250,21 @@ const ItemDetailPage: React.FC = () => {
             },
             {
               label: '标签',
-              value: item.tags.filter(t => !t.startsWith('show:')).join(' / ') || '无',
-              icon: Tag,
-              active: item.tags.filter(t => !t.startsWith('show:')).length > 0
+              value: (
+                <div className="flex flex-wrap gap-2 justify-end">
+                  {item.tags.filter(t => !t.startsWith('show:')).map((tag, i) => (
+                    <Tag key={i} type="custom" className="bg-primary/20 text-primary">
+                      {tag}
+                    </Tag>
+                  ))}
+                  {item.tags.filter(t => !t.startsWith('show:')).length === 0 && (
+                    <span className="text-[16px] font-semibold text-text-main dark:text-white">无</span>
+                  )}
+                </div>
+              ),
+              icon: TagIcon,
+              active: item.tags.filter(t => !t.startsWith('show:')).length > 0,
+              customValue: true
             },
           ].map((detail, idx) => {
             const isAttribute = !!detail.key;
@@ -261,10 +301,10 @@ const ItemDetailPage: React.FC = () => {
                   }}
                 >
                   <span className="text-[16px] text-text-secondary font-medium">{detail.label}</span>
-                  {detail.customValue ? detail.customValue : (
+                  {detail.customValue && typeof detail.value !== 'string' ? detail.value : (
                     <span className={`text-[16px] font-semibold text-text-main dark:text-white capitalize flex items-center gap-1`}>
                       {(detail.label === '分类' || detail.label === '季节') ? (
-                        getCategoryLabel(detail.value)
+                        getCategoryLabel(detail.value as string)
                       ) : (detail.label === '购入日期' && typeof detail.value === 'string' && detail.value !== '未知') ? detail.value.split('T')[0] : detail.value}
                       {(detail.isInteractable || detail.active) && <ChevronRight className="w-4 h-4 text-gray-300" />}
                     </span>

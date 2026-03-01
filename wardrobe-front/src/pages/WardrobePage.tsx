@@ -9,6 +9,8 @@ import WardrobeHeader from '@/features/wardrobe/components/WardrobeHeader';
 import WardrobeItemCard from '@/features/wardrobe/components/WardrobeItemCard';
 import { useWardrobe } from '@/features/wardrobe/hooks/useWardrobe';
 
+import { WardrobeItemCardSkeleton } from '@/features/wardrobe/components/WardrobeItemCardSkeleton';
+
 import type React from 'react';
 
 interface LocationState {
@@ -136,9 +138,10 @@ const WardrobePage: React.FC = () => {
       {/* Grid Content */}
       <div className="p-4 min-h-[50vh]">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-primary animate-spin" />
-            <p className="text-gray-400 text-sm mt-2">加载衣橱中...</p>
+          <div className="grid grid-cols-2 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <WardrobeItemCardSkeleton key={i} />
+            ))}
           </div>
         ) : (
           <>
