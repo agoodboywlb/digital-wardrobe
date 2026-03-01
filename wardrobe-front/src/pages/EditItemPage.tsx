@@ -2,10 +2,11 @@ import { ChevronLeft, CircleCheck, ChevronDown, Loader2, Trash2, Tag as TagIcon,
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import MultiImageUploader from '@/components/common/MultiImageUploader';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Tag } from '@/components/ui/Tag';
-import MultiImageUploader from '@/components/common/MultiImageUploader';
 import { wardrobeService } from '@/features/wardrobe/services/wardrobeService';
+import { buildTagRecommendations, mergeTagIntoInput, parseCustomTags } from '@/features/wardrobe/utils/tagRecommendations';
 import { ItemStatus } from '@/types/index';
 
 import type { MultiImageFile } from '@/components/common/MultiImageUploader';
@@ -33,9 +34,13 @@ const EditItemPage: React.FC = () => {
     const [selectedSeason, setSelectedSeason] = useState<string>('');
     const [tags, setTags] = useState<string>('');
     const [status, setStatus] = useState<ItemStatus>(ItemStatus.InWardrobe);
+    const [recommendedTags, setRecommendedTags] = useState<string[]>([]);
 
     // Multi-image state
     const [images, setImages] = useState<MultiImageFile[]>([]);
+    const selectedCustomTags = parseCustomTags(tags);
+    const selectedTagKeys = new Set(selectedCustomTags.map((tag) => tag.toLocaleLowerCase()));
+    const visibleRecommendedTags = recommendedTags.filter((tag) => !selectedTagKeys.has(tag.toLocaleLowerCase()));
 
     useEffect(() => {
         const loadItem = async () => {
@@ -86,6 +91,28 @@ const EditItemPage: React.FC = () => {
         };
         void loadItem();
     }, [id]);
+
+    useEffect(() => {
+        let active = true;
+
+        const loadRecommendations = async () => {
+            try {
+                const items = await wardrobeService.fetchItems();
+                if (!active) {
+                    return;
+                }
+                setRecommendedTags(buildTagRecommendations(items, { limit: 12 }));
+            } catch (error) {
+                console.error('Failed to load tag recommendations', error);
+            }
+        };
+
+        void loadRecommendations();
+
+        return () => {
+            active = false;
+        };
+    }, []);
 
     const handleSave = async () => {
         if (!id || !name || !selectedCategory) {
@@ -148,7 +175,7 @@ const EditItemPage: React.FC = () => {
                 season: selectedSeason || undefined,
                 tags: [
                     ...(item?.tags.filter(t => t.startsWith('show:')) || []),
-                    ...tags.split(/[,，]/).map(t => t.trim()).filter(t => t !== '')
+                    ...parseCustomTags(tags)
                 ]
             });
 
@@ -295,7 +322,7 @@ const EditItemPage: React.FC = () => {
 
                     <section className="space-y-4">
                         <label htmlFor="item-brand" className="flex items-center gap-2 text-text-secondary text-xs font-bold mb-2 uppercase tracking-wider px-1">
-                            <Tag className="w-3.5 h-3.5" /> 属性详情
+                            <TagIcon className="w-3.5 h-3.5" /> 属性详情
                         </label>
                         <div className="bg-white dark:bg-white/5 rounded-2xl ring-1 ring-gray-100 dark:ring-gray-800 overflow-hidden">
                             <div className="flex items-center border-b border-gray-50 dark:border-gray-800">
@@ -393,7 +420,7 @@ const EditItemPage: React.FC = () => {
                                     </div>
                                     <label htmlFor="item-tags" className="text-[10px] font-bold text-gray-400 w-16">自定义标签</label>
                                     <div className="flex-1 p-4 flex flex-wrap gap-2">
-                                        {tags.split(/[,，]/).map(t => t.trim()).filter(t => t !== '').map((tag, i) => (
+                                        {selectedCustomTags.map((tag, i) => (
                                             <Tag key={i} type="custom" className="bg-primary/20 text-primary">
                                                 {tag}
                                             </Tag>
@@ -408,6 +435,25 @@ const EditItemPage: React.FC = () => {
                                         />
                                     </div>
                                 </div>
+                                {visibleRecommendedTags.length > 0 && (
+                                    <div className="px-4 py-3 border-t border-gray-50 dark:border-gray-800">
+                                        <p className="text-[10px] font-bold text-gray-400 mb-2">快速打标</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {visibleRecommendedTags.slice(0, 8).map((tag) => (
+                                                <button
+                                                    key={tag}
+                                                    type="button"
+                                                    onClick={() => setTags((current) => mergeTagIntoInput(current, tag))}
+                                                    className="active:scale-[0.98] transition-transform"
+                                                >
+                                                    <Tag type="custom" className="bg-primary/20 text-primary hover:bg-primary/30">
+                                                        {tag}
+                                                    </Tag>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </section>

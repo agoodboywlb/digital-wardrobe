@@ -1,9 +1,11 @@
-import { ChevronLeft, CircleCheck, ChevronDown, Loader2, Info, Tag, Calendar, DollarSign, RefreshCcw, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { ChevronLeft, CircleCheck, ChevronDown, Loader2, Info, Tag as TagIcon, Calendar, DollarSign, RefreshCcw, Plus } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import MultiImageUploader from '@/components/common/MultiImageUploader';
+import { Tag } from '@/components/ui/Tag';
 import { wardrobeService } from '@/features/wardrobe/services/wardrobeService';
+import { buildTagRecommendations, mergeTagIntoInput, parseCustomTags } from '@/features/wardrobe/utils/tagRecommendations';
 import { ItemStatus } from '@/types/index';
 
 import type { Category } from '@/types/index';
@@ -26,9 +28,35 @@ const AddItemPage: React.FC = () => {
   const [lastWorn, setLastWorn] = useState('');
   const [selectedSeason, setSelectedSeason] = useState<string>('');
   const [tags, setTags] = useState<string>('');
+  const [recommendedTags, setRecommendedTags] = useState<string[]>([]);
 
   // Multi-image state
   const [images, setImages] = useState<any[]>([]);
+  const selectedCustomTags = parseCustomTags(tags);
+  const selectedTagKeys = new Set(selectedCustomTags.map((tag) => tag.toLocaleLowerCase()));
+  const visibleRecommendedTags = recommendedTags.filter((tag) => !selectedTagKeys.has(tag.toLocaleLowerCase()));
+
+  useEffect(() => {
+    let active = true;
+
+    const loadRecommendations = async () => {
+      try {
+        const items = await wardrobeService.fetchItems();
+        if (!active) {
+          return;
+        }
+        setRecommendedTags(buildTagRecommendations(items, { limit: 12 }));
+      } catch (error) {
+        console.error('Failed to load tag recommendations', error);
+      }
+    };
+
+    void loadRecommendations();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleSave = async () => {
     if (!name || !selectedCategory) {
@@ -64,7 +92,7 @@ const AddItemPage: React.FC = () => {
         imageUrl: mainImageUrl,
         status: ItemStatus.InWardrobe,
         season: selectedSeason || undefined,
-        tags: tags.split(/[,，]/).map(t => t.trim()).filter(t => t !== ''),
+        tags: parseCustomTags(tags),
         wearCount: 0
       });
 
@@ -171,7 +199,7 @@ const AddItemPage: React.FC = () => {
           {/* Detailed Attributes */}
           <section className="space-y-4">
             <label htmlFor="item-brand" className="flex items-center gap-2 text-text-secondary text-xs font-bold mb-2 uppercase tracking-wider px-1">
-              <Tag className="w-3.5 h-3.5" /> 属性详情
+              <TagIcon className="w-3.5 h-3.5" /> 属性详情
             </label>
             <div className="bg-white dark:bg-white/5 rounded-2xl ring-1 ring-gray-100 dark:ring-gray-800 overflow-hidden shadow-sm">
               <div className="flex items-center border-b border-gray-50 dark:border-gray-800">
@@ -267,7 +295,7 @@ const AddItemPage: React.FC = () => {
                 </div>
                 <div className="flex items-center">
                   <div className="w-12 flex justify-center text-text-secondary">
-                    <Tag className="w-4 h-4" />
+                    <TagIcon className="w-4 h-4" />
                   </div>
                   <label htmlFor="item-tags" className="text-[10px] font-bold text-gray-400 w-16">自定义标签</label>
                   <input
@@ -279,6 +307,25 @@ const AddItemPage: React.FC = () => {
                     placeholder="用逗号分隔，如：通勤, 复古"
                   />
                 </div>
+                {visibleRecommendedTags.length > 0 && (
+                  <div className="px-4 py-3 border-t border-gray-50 dark:border-gray-800">
+                    <p className="text-[10px] font-bold text-gray-400 mb-2">快速打标</p>
+                    <div className="flex flex-wrap gap-2">
+                      {visibleRecommendedTags.slice(0, 8).map((tag) => (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => setTags((current) => mergeTagIntoInput(current, tag))}
+                          className="active:scale-[0.98] transition-transform"
+                        >
+                          <Tag type="custom" className="bg-primary/20 text-primary hover:bg-primary/30">
+                            {tag}
+                          </Tag>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
               <p className="text-[10px] text-gray-400 px-2 leading-relaxed">
                 完善这些信息可以帮助我们为您提供更准确的衣橱统计，或者添加自定义分类标签。
